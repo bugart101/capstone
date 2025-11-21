@@ -1,72 +1,65 @@
 import { User } from '../types';
-
-const USERS_KEY = 'scheduler_users';
-
-const getLocalUsers = (): User[] => {
-  const data = localStorage.getItem(USERS_KEY);
-  return data ? JSON.parse(data) : [];
-};
-
-const setLocalUsers = (users: User[]) => {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-};
-
-// Seed default admin if not exists
-if (!localStorage.getItem(USERS_KEY)) {
-  const defaultAdmin: User = {
-    id: '1',
-    fullName: 'System Admin',
-    username: 'admin',
-    password: '123',
-    email: 'admin@school.edu',
-    role: 'ADMIN',
-    createdAt: Date.now()
-  };
-  setLocalUsers([defaultAdmin]);
-}
+import { supabase } from './supabaseClient';
 
 export const userService = {
   getUsers: async (): Promise<User[]> => {
-    // Simulate network delay
-    await new Promise(r => setTimeout(r, 500));
-    return getLocalUsers();
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('createdAt', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching users:', error);
+      return [];
+    }
+    return data as User[];
   },
 
   createUser: async (user: Omit<User, 'id' | 'createdAt'>): Promise<User> => {
-    await new Promise(r => setTimeout(r, 500));
-    const users = getLocalUsers();
-    
-    // Simple duplicate check
-    if (users.some(u => u.username === user.username)) {
-        throw new Error("Username already exists");
+    // Check if username exists
+    const { data: existing } = await supabase
+      .from('users')
+      .select('username')
+      .eq('username', user.username)
+      .single();
+
+    if (existing) {
+      throw new Error('Username already exists');
     }
 
-    const newUser: User = {
+    const newUser = {
       ...user,
-      id: crypto.randomUUID(),
       createdAt: Date.now()
     };
-    users.push(newUser);
-    setLocalUsers(users);
-    return newUser;
+
+    const { data, error } = await supabase
+      .from('users')
+      .insert([newUser])
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as User;
   },
 
   updateUser: async (user: User): Promise<User> => {
-    await new Promise(r => setTimeout(r, 500));
-    const users = getLocalUsers();
-    const index = users.findIndex(u => u.id === user.id);
-    if (index !== -1) {
-      users[index] = user;
-      setLocalUsers(users);
-      return user;
-    }
-    throw new Error('User not found');
+    const { data, error } = await supabase
+      .from('users')
+      .update(user)
+      .eq('id', user.id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as User;
   },
 
   deleteUser: async (id: string): Promise<void> => {
-    await new Promise(r => setTimeout(r, 500));
-    const users = getLocalUsers();
-    const filtered = users.filter(u => u.id !== id);
-    setLocalUsers(filtered);
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw new Error(error.message);
   }
 };

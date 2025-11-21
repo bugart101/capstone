@@ -1,21 +1,24 @@
 import { User } from '../types';
-import { userService } from './userService';
+import { supabase } from './supabaseClient';
 
 const SESSION_KEY = 'greensync_session';
 
 export const authService = {
   login: async (username: string, password: string): Promise<User> => {
-    // Simulate API delay
-    await new Promise(r => setTimeout(r, 800));
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .eq('password', password)
+      .single();
 
-    const users = await userService.getUsers();
-    const user = users.find(u => u.username === username && u.password === password);
-
-    if (user) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-      return user;
+    if (error || !data) {
+      throw new Error('Invalid username or password');
     }
-    throw new Error('Invalid username or password');
+
+    const user = data as User;
+    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    return user;
   },
 
   logout: () => {

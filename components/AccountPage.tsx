@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { User, UserRole } from '../types';
+import { User } from '../types';
 import { userService } from '../services/userService';
 import { authService } from '../services/authService';
 import { Modal } from './Modal';
 import { UserForm } from './UserForm';
-import { Plus, Search, Shield, User as UserIcon, MoreVertical, Edit, Trash2, AlertTriangle, Mail } from 'lucide-react';
+import { Plus, Search, Shield, User as UserIcon, Edit, Trash2, AlertTriangle, Mail } from 'lucide-react';
 
 export const AccountPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -77,7 +77,6 @@ export const AccountPage: React.FC = () => {
        <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-sm border border-gray-200">
          <UserForm 
            onUserSaved={() => {
-             // Reload user to reflect changes if needed, or just show success
              const updated = authService.getCurrentUser();
              setCurrentUser(updated);
            }}
@@ -91,12 +90,13 @@ export const AccountPage: React.FC = () => {
 
   // RENDER FOR ADMIN
   return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+    <div className="space-y-8">
+      
+      {/* User Management Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Account Management</h2>
-          <p className="text-gray-500 mt-1">Manage system users, roles, and access credentials.</p>
+          <h2 className="text-2xl font-bold text-gray-900">User Accounts</h2>
+          <p className="text-gray-500 mt-1">Manage system access credentials.</p>
         </div>
         <button
           onClick={handleCreate}
@@ -107,7 +107,7 @@ export const AccountPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Search and Filter */}
+      {/* Search */}
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
         <input 
