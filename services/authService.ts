@@ -1,36 +1,21 @@
-
 import { User } from '../types';
-import { supabase } from './supabaseClient';
+import { userService } from './userService';
 
 const SESSION_KEY = 'greensync_session';
 
 export const authService = {
   login: async (username: string, password: string): Promise<User> => {
-    // Query Supabase for the user
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('username', username)
-      .eq('password', password) // Note: In production, compare hashed passwords!
-      .single();
+    // Simulate API delay
+    await new Promise(r => setTimeout(r, 800));
 
-    if (error || !data) {
-      throw new Error('Invalid username or password');
+    const users = await userService.getUsers();
+    const user = users.find(u => u.username === username && u.password === password);
+
+    if (user) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+      return user;
     }
-
-    // Map DB fields to Type (snake_case to camelCase)
-    const user: User = {
-      id: data.id,
-      fullName: data.full_name,
-      username: data.username,
-      password: data.password,
-      email: data.email,
-      role: data.role as any,
-      createdAt: data.created_at
-    };
-    
-    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-    return user;
+    throw new Error('Invalid username or password');
   },
 
   logout: () => {

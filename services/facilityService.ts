@@ -1,58 +1,61 @@
-
 import { Facility } from '../types';
-import { supabase } from './supabaseClient';
+
+const FACILITY_KEY = 'scheduler_facilities';
+
+const getLocal = (): Facility[] => {
+  const data = localStorage.getItem(FACILITY_KEY);
+  return data ? JSON.parse(data) : [];
+};
+
+const setLocal = (data: Facility[]) => {
+  localStorage.setItem(FACILITY_KEY, JSON.stringify(data));
+};
+
+// Seed defaults
+if (!localStorage.getItem(FACILITY_KEY)) {
+  const seeds: Facility[] = [
+    { id: '1', name: 'Main Conference Room', equipment: ['Projector', 'Whiteboard', 'Video Conf'], createdAt: Date.now() },
+    { id: '2', name: 'Computer Lab A', equipment: ['30 PCs', 'Projector', 'Printer'], createdAt: Date.now() },
+    { id: '3', name: 'Auditorium', equipment: ['Sound System', 'Stage Lights', 'Projector'], createdAt: Date.now() }
+  ];
+  setLocal(seeds);
+}
 
 export const facilityService = {
   getFacilities: async (): Promise<Facility[]> => {
-    const { data, error } = await supabase
-      .from('facilities')
-      .select('*')
-      .order('created_at', { ascending: true });
-    
-    if (error) throw error;
-
-    return data.map((f: any) => ({
-      id: f.id,
-      name: f.name,
-      equipment: f.equipment || [],
-      createdAt: f.created_at
-    }));
+    await new Promise(r => setTimeout(r, 300));
+    return getLocal();
   },
 
   addFacility: async (name: string, equipment: string[]): Promise<Facility> => {
-    const { data, error } = await supabase
-      .from('facilities')
-      .insert([{ name, equipment }])
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return {
-      id: data.id,
-      name: data.name,
-      equipment: data.equipment,
-      createdAt: data.created_at
+    await new Promise(r => setTimeout(r, 300));
+    const list = getLocal();
+    const newFac: Facility = {
+      id: crypto.randomUUID(),
+      name,
+      equipment,
+      createdAt: Date.now()
     };
+    list.push(newFac);
+    setLocal(list);
+    return newFac;
   },
 
   updateFacility: async (facility: Facility): Promise<Facility> => {
-    const { data, error } = await supabase
-      .from('facilities')
-      .update({
-        name: facility.name,
-        equipment: facility.equipment
-      })
-      .eq('id', facility.id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return facility;
+    await new Promise(r => setTimeout(r, 300));
+    const list = getLocal();
+    const index = list.findIndex(f => f.id === facility.id);
+    if (index !== -1) {
+      list[index] = facility;
+      setLocal(list);
+      return facility;
+    }
+    throw new Error('Facility not found');
   },
 
   deleteFacility: async (id: string): Promise<void> => {
-    const { error } = await supabase.from('facilities').delete().eq('id', id);
-    if (error) throw error;
+    await new Promise(r => setTimeout(r, 300));
+    const list = getLocal();
+    setLocal(list.filter(f => f.id !== id));
   }
 };

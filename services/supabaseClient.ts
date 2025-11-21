@@ -1,8 +1,4 @@
 
-import { createClient } from '@supabase/supabase-js';
-
-// REPLACE THESE WITH YOUR ACTUAL SUPABASE CREDENTIALS
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_KEY = 'YOUR_SUPABASE_KEY';
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// Configuration for Local XAMPP API
+// Ensure your api.php is located at C:\xampp\htdocs\scheduler_api\api.php
+export const API_BASE_URL = 'http://localhost/scheduler_api/api.php';

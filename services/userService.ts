@@ -1,84 +1,72 @@
-
 import { User } from '../types';
-import { supabase } from './supabaseClient';
+
+const USERS_KEY = 'scheduler_users';
+
+const getLocalUsers = (): User[] => {
+  const data = localStorage.getItem(USERS_KEY);
+  return data ? JSON.parse(data) : [];
+};
+
+const setLocalUsers = (users: User[]) => {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+};
+
+// Seed default admin if not exists
+if (!localStorage.getItem(USERS_KEY)) {
+  const defaultAdmin: User = {
+    id: '1',
+    fullName: 'System Admin',
+    username: 'admin',
+    password: '123',
+    email: 'admin@school.edu',
+    role: 'ADMIN',
+    createdAt: Date.now()
+  };
+  setLocalUsers([defaultAdmin]);
+}
 
 export const userService = {
   getUsers: async (): Promise<User[]> => {
-    const { data, error } = await supabase.from('users').select('*');
-    
-    if (error) throw error;
-    
-    return data.map((u: any) => ({
-      id: u.id,
-      fullName: u.full_name,
-      username: u.username,
-      password: u.password,
-      email: u.email,
-      role: u.role,
-      createdAt: u.created_at
-    }));
+    // Simulate network delay
+    await new Promise(r => setTimeout(r, 500));
+    return getLocalUsers();
   },
 
   createUser: async (user: Omit<User, 'id' | 'createdAt'>): Promise<User> => {
-    // Check username uniqueness
-    const { data: existing } = await supabase
-      .from('users')
-      .select('id')
-      .eq('username', user.username)
-      .single();
+    await new Promise(r => setTimeout(r, 500));
+    const users = getLocalUsers();
+    
+    // Simple duplicate check
+    if (users.some(u => u.username === user.username)) {
+        throw new Error("Username already exists");
+    }
 
-    if (existing) throw new Error("Username already exists");
-
-    const { data, error } = await supabase
-      .from('users')
-      .insert([{
-        full_name: user.fullName,
-        username: user.username,
-        password: user.password,
-        email: user.email,
-        role: user.role,
-        // created_at is auto-handled by DB default, but we can read it back
-      }])
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return {
-      id: data.id,
-      fullName: data.full_name,
-      username: data.username,
-      password: data.password,
-      email: data.email,
-      role: data.role as any,
-      createdAt: data.created_at
+    const newUser: User = {
+      ...user,
+      id: crypto.randomUUID(),
+      createdAt: Date.now()
     };
+    users.push(newUser);
+    setLocalUsers(users);
+    return newUser;
   },
 
   updateUser: async (user: User): Promise<User> => {
-    const { data, error } = await supabase
-      .from('users')
-      .update({
-        full_name: user.fullName,
-        username: user.username,
-        password: user.password,
-        email: user.email,
-        role: user.role
-      })
-      .eq('id', user.id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return {
-      ...user,
-      fullName: data.full_name, // confirm update
-    };
+    await new Promise(r => setTimeout(r, 500));
+    const users = getLocalUsers();
+    const index = users.findIndex(u => u.id === user.id);
+    if (index !== -1) {
+      users[index] = user;
+      setLocalUsers(users);
+      return user;
+    }
+    throw new Error('User not found');
   },
 
   deleteUser: async (id: string): Promise<void> => {
-    const { error } = await supabase.from('users').delete().eq('id', id);
-    if (error) throw error;
+    await new Promise(r => setTimeout(r, 500));
+    const users = getLocalUsers();
+    const filtered = users.filter(u => u.id !== id);
+    setLocalUsers(filtered);
   }
 };

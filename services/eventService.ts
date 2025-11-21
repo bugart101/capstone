@@ -1,85 +1,51 @@
-
 import { EventRequest } from '../types';
-import { supabase } from './supabaseClient';
+
+const EVENTS_KEY = 'scheduler_events';
+
+const getLocal = (): EventRequest[] => {
+  const data = localStorage.getItem(EVENTS_KEY);
+  return data ? JSON.parse(data) : [];
+};
+
+const setLocal = (data: EventRequest[]) => {
+  localStorage.setItem(EVENTS_KEY, JSON.stringify(data));
+};
 
 export const eventService = {
   getEvents: async (): Promise<EventRequest[]> => {
-    const { data, error } = await supabase
-      .from('events')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error(error);
-      return [];
-    }
-    
-    return data.map((e: any) => ({
-      id: e.id,
-      userId: e.user_id,
-      requesterName: e.requester_name,
-      eventTitle: e.event_title,
-      facility: e.facility,
-      date: e.date,
-      timeSlot: e.time_slot,
-      startTime: e.start_time,
-      endTime: e.end_time,
-      equipment: e.equipment || [],
-      status: e.status as any,
-      createdAt: e.created_at
-    }));
+    await new Promise(r => setTimeout(r, 400));
+    return getLocal();
   },
 
   createEvent: async (event: Omit<EventRequest, 'id' | 'createdAt' | 'status'>): Promise<EventRequest> => {
-    const { data, error } = await supabase
-      .from('events')
-      .insert([{
-        user_id: event.userId,
-        requester_name: event.requesterName,
-        event_title: event.eventTitle,
-        facility: event.facility,
-        date: event.date,
-        time_slot: event.timeSlot,
-        start_time: event.startTime,
-        end_time: event.endTime,
-        equipment: event.equipment, // Supabase handles JSON automatically
-        status: 'Pending'
-      }])
-      .select()
-      .single();
-
-    if (error) throw error;
-    
-    return {
+    await new Promise(r => setTimeout(r, 400));
+    const list = getLocal();
+    const newEvent: EventRequest = {
       ...event,
-      id: data.id,
+      id: crypto.randomUUID(),
       status: 'Pending',
-      createdAt: data.created_at
+      createdAt: Date.now()
     };
+    list.push(newEvent);
+    setLocal(list);
+    return newEvent;
   },
 
   updateEvent: async (event: EventRequest): Promise<EventRequest> => {
-    const { error } = await supabase
-      .from('events')
-      .update({
-        requester_name: event.requesterName,
-        event_title: event.eventTitle,
-        facility: event.facility,
-        date: event.date,
-        time_slot: event.timeSlot,
-        start_time: event.startTime,
-        end_time: event.endTime,
-        equipment: event.equipment,
-        status: event.status
-      })
-      .eq('id', event.id);
-
-    if (error) throw error;
-    return event;
+    await new Promise(r => setTimeout(r, 400));
+    const list = getLocal();
+    const index = list.findIndex(e => e.id === event.id);
+    if (index !== -1) {
+      list[index] = event;
+      setLocal(list);
+      return event;
+    }
+    throw new Error('Event not found');
   },
 
   deleteEvent: async (id: string): Promise<void> => {
-    const { error } = await supabase.from('events').delete().eq('id', id);
-    if (error) throw error;
+    await new Promise(r => setTimeout(r, 400));
+    const list = getLocal();
+    setLocal(list.filter(e => e.id !== id));
   }
 };
