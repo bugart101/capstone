@@ -133,10 +133,10 @@ export const FacilityPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm transition-colors">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Facility Management</h2>
-          <p className="text-gray-500 mt-1">Manage facilities, equipment, and color coding.</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Facility Management</h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Manage facilities, equipment, and color coding.</p>
         </div>
         <button
           onClick={openAddModal}
@@ -149,13 +149,13 @@ export const FacilityPage: React.FC = () => {
 
       {/* Search */}
       <div className="relative max-w-md">
-        <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+        <Search className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500" size={18} />
         <input 
           type="text"
           placeholder="Search facilities..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary outline-none bg-white text-gray-900"
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-primary outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
         />
       </div>
 
@@ -170,7 +170,7 @@ export const FacilityPage: React.FC = () => {
             filteredFacilities.map(facility => (
               <div 
                 key={facility.id} 
-                className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 flex flex-col group hover:shadow-md transition-shadow h-full relative overflow-hidden"
+                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-5 flex flex-col group hover:shadow-md transition-all h-full relative overflow-hidden"
                 style={{ borderLeft: `5px solid ${facility.color || '#3b82f6'}` }}
               >
                 <div className="flex justify-between items-start mb-3">
@@ -182,8 +182,8 @@ export const FacilityPage: React.FC = () => {
                       <Building2 size={20} />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-900 text-lg leading-tight">{facility.name}</h3>
-                      <span className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                      <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight">{facility.name}</h3>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
                         <MapPin size={12} /> On Campus
                       </span>
                     </div>
@@ -191,14 +191,14 @@ export const FacilityPage: React.FC = () => {
                   <div className="flex gap-1">
                     <button
                       onClick={() => openEditModal(facility)}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors"
                       title="Edit"
                     >
                       <Edit size={16} />
                     </button>
                     <button
                       onClick={() => handleDeleteClick(facility)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
                       title="Delete"
                     >
                       <Trash2 size={16} />
@@ -206,29 +206,29 @@ export const FacilityPage: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="mt-2 pt-3 border-t border-gray-100 flex-grow">
-                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Available Equipment</h4>
+                <div className="mt-2 pt-3 border-t border-gray-100 dark:border-gray-700 flex-grow">
+                   <h4 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Available Equipment</h4>
                    {facility.equipment && facility.equipment.length > 0 ? (
                      <div className="flex flex-wrap gap-1.5">
                         {facility.equipment.slice(0, 4).map((item, idx) => (
-                          <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded border border-gray-200">
+                          <span key={idx} className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded border border-gray-200 dark:border-gray-600">
                             {item}
                           </span>
                         ))}
                         {facility.equipment.length > 4 && (
-                          <span className="px-2 py-0.5 bg-gray-50 text-gray-400 text-xs rounded border border-gray-100">
+                          <span className="px-2 py-0.5 bg-gray-50 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500 text-xs rounded border border-gray-100 dark:border-gray-600">
                              +{facility.equipment.length - 4} more
                           </span>
                         )}
                      </div>
                    ) : (
-                     <p className="text-xs text-gray-400 italic">No equipment listed</p>
+                     <p className="text-xs text-gray-400 dark:text-gray-600 italic">No equipment listed</p>
                    )}
                 </div>
               </div>
             ))
           ) : (
-             <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg border border-gray-200 border-dashed">
+             <div className="col-span-full text-center py-12 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 border-dashed transition-colors">
                <Building2 size={48} className="mx-auto mb-3 opacity-20" />
                <p>No facilities found matching your search.</p>
             </div>
@@ -242,9 +242,9 @@ export const FacilityPage: React.FC = () => {
         onClose={() => setIsFormModalOpen(false)}
         title={editingFacility ? 'Edit Facility' : 'Add New Facility'}
       >
-        <form onSubmit={handleFormSubmit} className="space-y-6">
+        <form onSubmit={handleFormSubmit} className="space-y-6 text-gray-900 dark:text-gray-100">
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1">Facility Name</label>
+            <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">Facility Name</label>
             <input
               type="text"
               autoFocus
@@ -252,12 +252,12 @@ export const FacilityPage: React.FC = () => {
               value={facilityName}
               onChange={(e) => setFacilityName(e.target.value)}
               placeholder="e.g., Science Lab 101"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary outline-none bg-white text-gray-900"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-2">Color Label</label>
+            <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Color Label</label>
             <div className="flex flex-wrap gap-3">
               {PRESET_COLORS.map((color) => (
                 <button
@@ -266,7 +266,7 @@ export const FacilityPage: React.FC = () => {
                   onClick={() => setFacilityColor(color.value)}
                   className={`
                     w-8 h-8 rounded-full flex items-center justify-center transition-all
-                    ${facilityColor === color.value ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : 'hover:scale-110'}
+                    ${facilityColor === color.value ? 'ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 scale-110' : 'hover:scale-110'}
                   `}
                   style={{ backgroundColor: color.value }}
                   title={color.name}
@@ -278,35 +278,35 @@ export const FacilityPage: React.FC = () => {
           </div>
 
           <div>
-             <label className="block text-sm font-semibold text-gray-800 mb-2">Equipment List</label>
+             <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">Equipment List</label>
              <div className="flex gap-2 mb-3">
                 <input
                   type="text"
                   value={equipmentInput}
                   onChange={(e) => setEquipmentInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddEquipment())}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary outline-none text-sm bg-white text-gray-900 placeholder-gray-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary outline-none text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Add amenity (e.g., Projector)"
                 />
                 <button
                   type="button"
                   onClick={handleAddEquipment}
-                  className="bg-gray-100 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-200 font-medium text-sm transition-colors"
+                  className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 font-medium text-sm transition-colors"
                 >
                   Add
                 </button>
              </div>
              
-             <div className="bg-gray-50 rounded-md border border-gray-200 p-2 min-h-[100px] max-h-[200px] overflow-y-auto">
+             <div className="bg-gray-50 dark:bg-gray-900/50 rounded-md border border-gray-200 dark:border-gray-700 p-2 min-h-[100px] max-h-[200px] overflow-y-auto">
                {equipmentList.length > 0 ? (
                  <ul className="space-y-1.5">
                    {equipmentList.map((item, idx) => (
-                     <li key={idx} className="flex justify-between items-center bg-white p-2 rounded shadow-sm border border-gray-100">
-                       <span className="text-sm text-gray-800">{item}</span>
+                     <li key={idx} className="flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded shadow-sm border border-gray-100 dark:border-gray-700">
+                       <span className="text-sm text-gray-800 dark:text-gray-200">{item}</span>
                        <button
                          type="button"
                          onClick={() => handleRemoveEquipment(idx)}
-                         className="text-gray-400 hover:text-red-500 transition-colors"
+                         className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                        >
                          <X size={14} />
                        </button>
@@ -314,7 +314,7 @@ export const FacilityPage: React.FC = () => {
                    ))}
                  </ul>
                ) : (
-                 <div className="h-full flex flex-col items-center justify-center text-gray-400 text-xs italic">
+                 <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 text-xs italic">
                     <Package size={24} className="mb-1 opacity-20" />
                     No equipment added yet.
                  </div>
@@ -322,11 +322,11 @@ export const FacilityPage: React.FC = () => {
              </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
+          <div className="flex justify-end gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
              <button 
               type="button"
               onClick={() => setIsFormModalOpen(false)}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 font-bold text-sm transition-colors"
+              className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 font-bold text-sm transition-colors"
             >
               Cancel
             </button>
@@ -348,18 +348,18 @@ export const FacilityPage: React.FC = () => {
         onClose={() => setIsDeleteModalOpen(false)}
         title="Delete Facility"
       >
-         <div className="space-y-6">
+         <div className="space-y-6 text-gray-900 dark:text-gray-100">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 bg-red-100 rounded-full p-2">
-              <AlertTriangle className="text-red-600" size={24} />
+            <div className="flex-shrink-0 bg-red-100 dark:bg-red-900/30 rounded-full p-2">
+              <AlertTriangle className="text-red-600 dark:text-red-400" size={24} />
             </div>
             <div>
-              <h4 className="text-lg font-medium text-gray-900">Confirm Deletion</h4>
-              <p className="text-sm text-gray-600 mt-1">
+              <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100">Confirm Deletion</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Are you sure you want to delete this facility?
               </p>
               {selectedFacility && (
-                <div className="mt-3 p-3 bg-gray-50 rounded border border-gray-200 text-sm font-bold text-gray-800">
+                <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 text-sm font-bold text-gray-800 dark:text-gray-200">
                   {selectedFacility.name}
                 </div>
               )}
@@ -369,7 +369,7 @@ export const FacilityPage: React.FC = () => {
           <div className="flex justify-end gap-3">
             <button 
               onClick={() => setIsDeleteModalOpen(false)}
-              className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 font-bold text-sm transition-colors"
+              className="px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 font-bold text-sm transition-colors"
             >
               Cancel
             </button>

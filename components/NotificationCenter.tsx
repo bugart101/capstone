@@ -57,10 +57,10 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'STATUS_CHANGE': return <CheckCircle2 size={16} className="text-green-600" />;
-      case 'NEW_REQUEST': return <AlertCircle size={16} className="text-blue-600" />;
-      case 'UPCOMING_EVENT': return <Calendar size={16} className="text-orange-600" />;
-      default: return <Info size={16} className="text-gray-600" />;
+      case 'STATUS_CHANGE': return <CheckCircle2 size={16} className="text-green-600 dark:text-green-400" />;
+      case 'NEW_REQUEST': return <AlertCircle size={16} className="text-blue-600 dark:text-blue-400" />;
+      case 'UPCOMING_EVENT': return <Calendar size={16} className="text-orange-600 dark:text-orange-400" />;
+      default: return <Info size={16} className="text-gray-600 dark:text-gray-400" />;
     }
   };
 
@@ -87,14 +87,14 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 z-50 animate-fade-in origin-top-right overflow-hidden">
-          <div className="p-3 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-            <h3 className="text-sm font-bold text-gray-700">Notifications</h3>
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 z-50 animate-fade-in origin-top-right overflow-hidden border border-gray-100 dark:border-gray-700">
+          <div className="p-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-900 transition-colors">
+            <h3 className="text-sm font-bold text-gray-700 dark:text-gray-200">Notifications</h3>
             <div className="flex gap-1">
               {unreadCount > 0 && (
                 <button 
                   onClick={handleMarkAllRead}
-                  className="text-xs text-primary hover:text-primary-hover font-medium px-2 py-1 rounded hover:bg-primary-light transition-colors"
+                  className="text-xs text-primary hover:text-primary-hover font-medium px-2 py-1 rounded hover:bg-primary-light dark:hover:bg-primary-light/10 transition-colors"
                 >
                   Mark all read
                 </button>
@@ -102,7 +102,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               {notifications.length > 0 && (
                 <button 
                   onClick={handleClearAll}
-                  className="text-gray-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors"
+                  className="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
                   title="Clear all"
                 >
                   <Trash2 size={14} />
@@ -111,40 +111,40 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
             </div>
           </div>
 
-          <div className="max-h-[400px] overflow-y-auto">
+          <div className="max-h-[400px] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 hover:[&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full">
             {notifications.length === 0 ? (
-              <div className="p-8 text-center text-gray-400">
+              <div className="p-8 text-center text-gray-400 dark:text-gray-500">
                 <Bell size={32} className="mx-auto mb-2 opacity-20" />
                 <p className="text-sm">No notifications yet.</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-50 dark:divide-gray-700/50">
                 {notifications.map(notification => (
                   <div 
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
                     className={`
-                      p-4 hover:bg-gray-50 transition-colors cursor-pointer relative group
-                      ${!notification.read ? 'bg-blue-50/40' : 'bg-white'}
+                      p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer relative group
+                      ${!notification.read ? 'bg-blue-50/40 dark:bg-blue-900/10' : 'bg-white dark:bg-gray-800'}
                     `}
                   >
                     <div className="flex gap-3">
-                      <div className={`mt-0.5 p-1.5 rounded-full h-fit flex-shrink-0 ${!notification.read ? 'bg-white shadow-sm' : 'bg-gray-100'}`}>
+                      <div className={`mt-0.5 p-1.5 rounded-full h-fit flex-shrink-0 ${!notification.read ? 'bg-white dark:bg-gray-700 shadow-sm' : 'bg-gray-100 dark:bg-gray-700/50'}`}>
                         {getIcon(notification.type)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start mb-0.5">
-                          <p className={`text-sm ${!notification.read ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
+                          <p className={`text-sm ${!notification.read ? 'font-bold text-gray-900 dark:text-gray-100' : 'font-medium text-gray-700 dark:text-gray-300'}`}>
                             {notification.title}
                           </p>
                           {!notification.read && (
-                            <span className="h-2 w-2 bg-blue-500 rounded-full"></span>
+                            <span className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5"></span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 leading-snug mb-1.5">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-snug mb-1.5">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-gray-400 font-medium">
+                        <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
                           {getTimeAgo(notification.timestamp)}
                         </p>
                       </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Filter, Edit, Trash2, 
@@ -300,10 +299,10 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
 
   const getStatusBadge = (status: EventStatus, size: 'sm' | 'lg' = 'sm') => {
     const styles = {
-      Pending: 'bg-orange-100 text-orange-800 border-orange-200',
-      Approved: 'bg-green-100 text-green-800 border-green-200',
-      Rejected: 'bg-red-100 text-red-800 border-red-200',
-      Canceled: 'bg-gray-100 text-gray-800 border-gray-200',
+      Pending: 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800',
+      Approved: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800',
+      Rejected: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800',
+      Canceled: 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600',
     };
 
     const dotColors = {
@@ -336,36 +335,36 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
   const renderRequestDetails = (request: EventRequest, isMobileView: boolean) => {
     return (
       <>
-        <div className={`p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50 ${isMobileView ? 'sticky top-0 z-10' : ''}`}>
+        <div className={`p-6 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50 dark:bg-gray-900 transition-colors ${isMobileView ? 'sticky top-0 z-10' : ''}`}>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 leading-tight">{request.eventTitle}</h2>
-            <p className="text-sm text-gray-500 font-mono mt-1">ID: {request.id.slice(0, 8)}</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 leading-tight">{request.eventTitle}</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-mono mt-1">ID: {request.id.slice(0, 8)}</p>
           </div>
           <div>
             {getStatusBadge(request.status, 'lg')}
           </div>
         </div>
 
-        <div className={`flex-1 overflow-y-auto p-6 ${isMobileView ? 'pb-24' : ''} [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 hover:[&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full`}>
+        <div className={`flex-1 overflow-y-auto p-6 bg-white dark:bg-gray-800 transition-colors ${isMobileView ? 'pb-24' : ''} [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 hover:[&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full`}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div className="space-y-4">
-              <h3 className="text-base font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 pb-2">Event Details</h3>
+              <h3 className="text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">Event Details</h3>
               <div className="grid grid-cols-2 gap-y-6">
                 <div>
-                  <span className="block text-sm text-gray-500 font-medium mb-1">Requester</span>
-                  <span className="block font-bold text-gray-900 text-lg">{request.requesterName}</span>
+                  <span className="block text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Requester</span>
+                  <span className="block font-bold text-gray-900 dark:text-gray-100 text-lg">{request.requesterName}</span>
                 </div>
                 <div>
-                  <span className="block text-sm text-gray-500 font-medium mb-1">Facility</span>
-                  <span className="block font-bold text-gray-900 text-lg">{request.facility}</span>
+                  <span className="block text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Facility</span>
+                  <span className="block font-bold text-gray-900 dark:text-gray-100 text-lg">{request.facility}</span>
                 </div>
                 <div>
-                  <span className="block text-sm text-gray-500 font-medium mb-1">Date</span>
-                  <span className="block font-bold text-gray-900 text-lg">{new Date(request.date).toLocaleDateString()}</span>
+                  <span className="block text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Date</span>
+                  <span className="block font-bold text-gray-900 dark:text-gray-100 text-lg">{new Date(request.date).toLocaleDateString()}</span>
                 </div>
                 <div>
-                  <span className="block text-sm text-gray-500 font-medium mb-1">Time Slot</span>
-                  <span className="block font-bold text-gray-900 text-lg">{request.timeSlot}</span>
+                  <span className="block text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Time Slot</span>
+                  <span className="block font-bold text-gray-900 dark:text-gray-100 text-lg">{request.timeSlot}</span>
                 </div>
               </div>
               
@@ -373,14 +372,14 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
                 const amenities = getFacilityEquipment(request.facility);
                 if (amenities.length > 0) {
                   return (
-                      <div className="bg-blue-50 p-3 rounded-md border border-blue-100 mt-2">
-                        <div className="flex items-center gap-1.5 text-sm font-bold text-blue-800 mb-1.5">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md border border-blue-100 dark:border-blue-800 mt-2 transition-colors">
+                        <div className="flex items-center gap-1.5 text-sm font-bold text-blue-800 dark:text-blue-300 mb-1.5">
                           <Info size={14} />
                           Facility Amenities (Included)
                         </div>
-                        <div className="text-sm text-blue-700 leading-relaxed flex flex-wrap gap-1">
+                        <div className="text-sm text-blue-700 dark:text-blue-200 leading-relaxed flex flex-wrap gap-1">
                           {amenities.map((item, idx) => (
-                            <span key={idx} className="bg-white px-2 py-0.5 rounded border border-blue-200">
+                            <span key={idx} className="bg-white dark:bg-gray-800 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-700">
                               {item}
                             </span>
                           ))}
@@ -394,14 +393,14 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-base font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 pb-2">Timing</h3>
-              <div className="flex items-center gap-4 bg-blue-50 p-5 rounded-lg text-blue-900">
-                <Clock className="text-blue-600 flex-shrink-0" size={24} />
+              <h3 className="text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">Timing</h3>
+              <div className="flex items-center gap-4 bg-blue-50 dark:bg-blue-900/20 p-5 rounded-lg text-blue-900 dark:text-blue-200 transition-colors">
+                <Clock className="text-blue-600 dark:text-blue-400 flex-shrink-0" size={24} />
                 <div>
                   <div className="text-sm font-semibold mb-0.5">Start Time</div>
                   <div className="text-xl font-bold">{formatTime(request.startTime)}</div>
                 </div>
-                <div className="h-10 w-px bg-blue-200 mx-2"></div>
+                <div className="h-10 w-px bg-blue-200 dark:bg-blue-700 mx-2"></div>
                 <div>
                   <div className="text-sm font-semibold mb-0.5">End Time</div>
                   <div className="text-xl font-bold">{formatTime(request.endTime)}</div>
@@ -411,27 +410,27 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-base font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 pb-2">Requested Equipment</h3>
+            <h3 className="text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">Requested Equipment</h3>
             {request.equipment.length > 0 ? (
-              <div className="overflow-hidden border border-gray-200 rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+              <div className="overflow-hidden border border-gray-200 dark:border-gray-700 rounded-lg">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
-                      <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Item Name</th>
-                      <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Availability</th>
+                      <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Item Name</th>
+                      <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Availability</th>
                       {isAdmin && (
-                          <th scope="col" className="px-4 md:px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Action</th>
+                          <th scope="col" className="px-4 md:px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Action</th>
                       )}
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {request.equipment.map((item) => {
                       const isAvailable = item.status === 'Available' || item.status === undefined;
                       return (
                         <tr key={item.id}>
-                          <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm md:text-base font-bold text-gray-900">{item.name}</td>
+                          <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm md:text-base font-bold text-gray-900 dark:text-gray-100">{item.name}</td>
                           <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm">
-                            <span className={`flex items-center gap-1.5 ${isAvailable ? 'text-green-600' : 'text-red-500'}`}>
+                            <span className={`flex items-center gap-1.5 ${isAvailable ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
                               {isAvailable ? <CheckCircle size={18} /> : <XCircle size={18} />}
                               <span className="font-bold">{isAvailable ? 'Available' : 'Not Available'}</span>
                             </span>
@@ -440,7 +439,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
                             <td className="px-4 md:px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <button
                                   onClick={() => handleEquipmentStatusChange(item.id, item.status || 'Available')}
-                                  className="text-blue-600 hover:text-blue-800 font-bold text-xs border border-blue-200 bg-blue-50 px-3 py-1.5 rounded hover:bg-blue-100 transition-colors"
+                                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-bold text-xs border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
                                 >
                                   Change
                                 </button>
@@ -453,39 +452,39 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
                 </table>
               </div>
             ) : (
-              <p className="text-sm text-gray-500 italic">No equipment requested.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 italic">No equipment requested.</p>
             )}
           </div>
         </div>
 
         {/* Action Bar */}
-        <div className={`p-4 bg-gray-50 border-t border-gray-200 flex flex-wrap gap-3 items-center justify-between ${isMobileView ? 'sticky bottom-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]' : ''}`}>
+        <div className={`p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-3 items-center justify-between transition-colors ${isMobileView ? 'sticky bottom-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]' : ''}`}>
           
           {isAdmin ? (
             <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 w-full md:w-auto scrollbar-hide">
-              <span className="text-sm font-bold text-gray-700 mr-2 flex-shrink-0">Set Status:</span>
-              <div className="flex bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden flex-shrink-0">
+              <span className="text-sm font-bold text-gray-700 dark:text-gray-300 mr-2 flex-shrink-0">Set Status:</span>
+              <div className="flex bg-white dark:bg-gray-800 rounded-md shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex-shrink-0">
                 <button 
                   onClick={() => handleStatusChange('Pending')}
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${request.status === 'Pending' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${request.status === 'Pending' ? 'bg-orange-500 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                 >
                   Pending
                 </button>
                 <button 
                   onClick={() => handleStatusChange('Approved')}
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${request.status === 'Approved' ? 'bg-green-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${request.status === 'Approved' ? 'bg-green-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                 >
                   Approved
                 </button>
                 <button 
                   onClick={() => handleStatusChange('Rejected')}
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${request.status === 'Rejected' ? 'bg-red-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${request.status === 'Rejected' ? 'bg-red-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                 >
                   Rejected
                 </button>
                 <button 
                   onClick={() => handleStatusChange('Canceled')}
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${request.status === 'Canceled' ? 'bg-gray-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${request.status === 'Canceled' ? 'bg-gray-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                 >
                   Canceled
                 </button>
@@ -497,7 +496,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
               {request.status !== 'Canceled' && (
                 <button 
                   onClick={() => handleStatusChange('Canceled')}
-                  className="px-3 py-2 text-xs font-bold rounded-md transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300"
+                  className="px-3 py-2 text-xs font-bold rounded-md transition-colors bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600"
                 >
                   Cancel Request
                 </button>
@@ -509,7 +508,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
               {isAdmin && (
                 <button 
                   onClick={() => setIsEditModalOpen(true)}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-md text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm"
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
                 >
                   <Edit size={16} /> Edit
                 </button>
@@ -517,15 +516,15 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
               
               <button 
                 onClick={handleDownloadWord}
-                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-md text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm"
+                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
               >
-                <FileText size={16} className="text-blue-600" /> Word
+                <FileText size={16} className="text-blue-600 dark:text-blue-400" /> Word
               </button>
               
               {isAdmin && (
                 <button 
                   onClick={handleDeleteClick}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm font-bold hover:bg-red-100 transition-colors shadow-sm"
+                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-md text-sm font-bold hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors shadow-sm"
                 >
                   <Trash2 size={16} /> Delete
                 </button>
@@ -540,9 +539,9 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-8rem)]">
       
       {/* LEFT COLUMN: Request List */}
-      <div className="lg:col-span-1 flex flex-col bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden h-full">
+      <div className="lg:col-span-1 flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden h-full transition-colors">
         {/* List Header */}
-        <div className="p-4 border-b border-gray-100 space-y-3 bg-gray-50">
+        <div className="p-4 border-b border-gray-100 dark:border-gray-700 space-y-3 bg-gray-50 dark:bg-gray-900">
           <div className="relative">
             <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
             <input 
@@ -550,17 +549,17 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
               placeholder="Search by ID or Title..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary outline-none bg-white text-gray-900"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-2 focus:ring-primary outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
           
           <div className="grid grid-cols-2 gap-2">
             <div className="relative">
-              <Filter className="absolute left-2.5 top-2 text-gray-500 pointer-events-none" size={14} />
+              <Filter className="absolute left-2.5 top-2 text-gray-500 dark:text-gray-400 pointer-events-none" size={14} />
               <select 
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value as any)}
-                className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm bg-white text-gray-900 focus:ring-1 focus:ring-primary outline-none appearance-none"
+                className="w-full pl-8 pr-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-primary outline-none appearance-none"
               >
                 <option value="All">All Status</option>
                 <option value="Pending">Pending</option>
@@ -571,11 +570,11 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
             </div>
 
             <div className="relative">
-              <ListFilter className="absolute left-2.5 top-2 text-gray-500 pointer-events-none" size={14} />
+              <ListFilter className="absolute left-2.5 top-2 text-gray-500 dark:text-gray-400 pointer-events-none" size={14} />
               <select 
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as any)}
-                className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm bg-white text-gray-900 focus:ring-1 focus:ring-primary outline-none appearance-none"
+                className="w-full pl-8 pr-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-primary outline-none appearance-none"
               >
                 <option value="newest">Newest</option>
                 <option value="oldest">Oldest</option>
@@ -588,7 +587,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
         {/* Scrollable List */}
         <div className="flex-1 overflow-y-auto p-2 space-y-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 hover:[&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full">
           {filteredEvents.length === 0 ? (
-            <div className="text-center py-10 text-gray-500">
+            <div className="text-center py-10 text-gray-500 dark:text-gray-400">
               <FileText size={40} className="mx-auto mb-2 opacity-20" />
               <p>No requests found.</p>
             </div>
@@ -609,22 +608,22 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
                   className={`
                     p-3 rounded-lg border transition-all cursor-pointer hover:shadow-md group relative overflow-hidden
                     ${selectedRequest?.id === event.id 
-                      ? 'bg-blue-50 border-blue-500 ring-1 ring-blue-500' 
-                      : 'bg-white border-gray-200 hover:border-blue-300'}
+                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 ring-1 ring-blue-500' 
+                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700'}
                   `}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <span 
-                      style={{ color: facilityColor, backgroundColor: `${facilityColor}15` }}
-                      className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider"
+                      style={{ color: facilityColor }}
+                      className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-gray-100 dark:bg-gray-700"
                     >
                       {event.facility}
                     </span>
                     {getStatusBadge(event.status)}
                   </div>
-                  <h3 className="text-gray-900 font-bold text-base truncate mb-2">{event.eventTitle}</h3>
+                  <h3 className="text-gray-900 dark:text-gray-100 font-bold text-base truncate mb-2">{event.eventTitle}</h3>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-gray-500 font-mono bg-gray-100 px-1 rounded">#{event.id.slice(0,6)}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded">#{event.id.slice(0,6)}</span>
                     <button className="text-xs font-semibold text-primary hover:text-primary-hover flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       View <Eye size={12} />
                     </button>
@@ -637,15 +636,15 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
       </div>
 
       {/* RIGHT COLUMN: Request Details (Desktop Only - hidden on mobile) */}
-      <div className="hidden lg:flex lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200 flex-col h-full overflow-hidden">
+      <div className="hidden lg:flex lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex-col h-full overflow-hidden transition-colors">
         {selectedRequest ? (
           renderRequestDetails(selectedRequest, false)
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8">
-            <div className="bg-gray-100 p-6 rounded-full mb-4">
-              <FileText size={48} className="text-gray-300" />
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-8">
+            <div className="bg-gray-100 dark:bg-gray-700 p-6 rounded-full mb-4">
+              <FileText size={48} className="text-gray-300 dark:text-gray-500" />
             </div>
-            <h3 className="text-lg font-bold text-gray-600">No Request Selected</h3>
+            <h3 className="text-lg font-bold text-gray-600 dark:text-gray-300">No Request Selected</h3>
             <p className="text-sm">Select a request from the list to view details and manage actions.</p>
           </div>
         )}
@@ -657,7 +656,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
          onClose={() => setIsMobileDetailOpen(false)}
          title="Request Details"
       >
-        <div className="bg-white rounded-lg overflow-hidden flex flex-col max-h-[85vh]">
+        <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden flex flex-col max-h-[85vh]">
            {selectedRequest && renderRequestDetails(selectedRequest, true)}
         </div>
       </Modal>
@@ -686,21 +685,21 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
         onClose={() => setIsDeleteModalOpen(false)}
         title="Confirm Deletion"
       >
-        <div className="space-y-6">
+        <div className="space-y-6 text-gray-900 dark:text-gray-100">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 bg-red-100 rounded-full p-2">
-              <AlertTriangle className="text-red-600" size={24} />
+            <div className="flex-shrink-0 bg-red-100 dark:bg-red-900/30 rounded-full p-2">
+              <AlertTriangle className="text-red-600 dark:text-red-400" size={24} />
             </div>
             <div>
-              <h4 className="text-lg font-medium text-gray-900">Delete Request?</h4>
-              <p className="text-sm text-gray-600 mt-1">
+              <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100">Delete Request?</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Are you sure you want to delete this request? This action cannot be undone.
               </p>
               {selectedRequest && (
-                <div className="mt-2 p-2 bg-gray-50 rounded border border-gray-200 text-sm">
+                <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 text-sm">
                   <span className="font-bold">{selectedRequest.eventTitle}</span>
                   <br/>
-                  <span className="text-gray-500">{selectedRequest.date}</span>
+                  <span className="text-gray-500 dark:text-gray-400">{selectedRequest.date}</span>
                 </div>
               )}
             </div>
@@ -709,7 +708,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
           <div className="flex justify-end gap-3">
             <button 
               onClick={() => setIsDeleteModalOpen(false)}
-              className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 font-bold text-sm transition-colors"
+              className="px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 font-bold text-sm transition-colors"
             >
               Cancel
             </button>
