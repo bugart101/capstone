@@ -1,3 +1,4 @@
+
 import { Facility } from '../types';
 import { supabase } from './supabaseClient';
 
@@ -5,43 +6,45 @@ export const facilityService = {
   getFacilities: async (): Promise<Facility[]> => {
     const { data, error } = await supabase
       .from('facilities')
-      .select('*')
-      .order('createdAt', { ascending: true });
-
+      .select('*');
+    
     if (error) {
       console.error('Error fetching facilities:', error);
       return [];
     }
-    return data as Facility[];
+    return data || [];
   },
 
-  addFacility: async (name: string, equipment: string[]): Promise<Facility> => {
-    const newFacility = {
-      name,
-      equipment,
-      createdAt: Date.now()
-    };
-
+  addFacility: async (name: string, equipment: string[], color: string): Promise<Facility> => {
     const { data, error } = await supabase
       .from('facilities')
-      .insert([newFacility])
+      .insert({
+        name,
+        equipment, // Supabase handles JSONB conversion
+        color: color || '#3b82f6',
+        createdAt: Date.now()
+      })
       .select()
       .single();
 
-    if (error) throw new Error(error.message);
-    return data as Facility;
+    if (error) throw error;
+    return data;
   },
 
   updateFacility: async (facility: Facility): Promise<Facility> => {
     const { data, error } = await supabase
       .from('facilities')
-      .update(facility)
+      .update({
+        name: facility.name,
+        equipment: facility.equipment,
+        color: facility.color
+      })
       .eq('id', facility.id)
       .select()
       .single();
 
-    if (error) throw new Error(error.message);
-    return data as Facility;
+    if (error) throw error;
+    return data;
   },
 
   deleteFacility: async (id: string): Promise<void> => {
@@ -50,6 +53,6 @@ export const facilityService = {
       .delete()
       .eq('id', id);
 
-    if (error) throw new Error(error.message);
+    if (error) throw error;
   }
 };

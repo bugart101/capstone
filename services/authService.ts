@@ -1,3 +1,4 @@
+
 import { User } from '../types';
 import { supabase } from './supabaseClient';
 
@@ -5,20 +6,21 @@ const SESSION_KEY = 'greensync_session';
 
 export const authService = {
   login: async (username: string, password: string): Promise<User> => {
+    // Verify against Supabase DB
     const { data, error } = await supabase
       .from('users')
       .select('*')
       .eq('username', username)
-      .eq('password', password)
+      .eq('password', password) // Note: In production, hash passwords!
       .single();
 
     if (error || !data) {
       throw new Error('Invalid username or password');
     }
 
-    const user = data as User;
-    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-    return user;
+    // Save session locally for persistence
+    localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+    return data;
   },
 
   logout: () => {

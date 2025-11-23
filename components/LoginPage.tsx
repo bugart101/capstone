@@ -33,7 +33,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden">
         <div className="bg-primary p-8 text-center">
-          <h1 className="text-2xl font-bold text-white mb-2">Admin Scheduler</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">Facility Management System</h1>
           <p className="text-primary-light text-sm">Sign in to manage your events</p>
         </div>
         
@@ -84,14 +84,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               {!isLoading && <ArrowRight size={18} />}
             </button>
           </form>
-
-          <div className="mt-8 pt-6 border-t border-gray-100 text-center text-xs text-gray-500">
-            <p className="font-bold mb-2">Default Credentials (for testing):</p>
-            <div className="space-y-1">
-              <p><span className="font-semibold">Admin:</span> admin / 123</p>
-              <p><span className="font-semibold">User:</span> user / 123</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
