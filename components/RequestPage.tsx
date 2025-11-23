@@ -346,7 +346,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
           </div>
         </div>
 
-        <div className={`flex-1 overflow-y-auto p-6 ${isMobileView ? 'pb-24' : ''}`}>
+        <div className={`flex-1 overflow-y-auto p-6 ${isMobileView ? 'pb-24' : ''} [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 hover:[&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full`}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div className="space-y-4">
               <h3 className="text-base font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100 pb-2">Event Details</h3>
@@ -586,7 +586,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
         </div>
 
         {/* Scrollable List */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-2">
+        <div className="flex-1 overflow-y-auto p-2 space-y-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 hover:[&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full">
           {filteredEvents.length === 0 ? (
             <div className="text-center py-10 text-gray-500">
               <FileText size={40} className="mx-auto mb-2 opacity-20" />
