@@ -8,11 +8,9 @@ import {
   endOfWeek, 
   eachDayOfInterval, 
   isSameMonth, 
-  isSameDay, 
+  isToday,
   addMonths, 
-  subMonths, 
-  parseISO,
-  isToday
+  subMonths
 } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar as CalIcon } from 'lucide-react';
 import { EventRequest } from '../types';
@@ -51,13 +49,18 @@ export const Calendar: React.FC<CalendarProps> = ({
   const goToToday = () => onDateChange(new Date());
 
   const getEventsForDay = (day: Date) => {
-    // Return events sorted by time
+    const dayStr = format(day, 'yyyy-MM-dd');
+    
     return events
-      .filter(event => isSameDay(parseISO(event.date), day))
+      .filter(event => {
+        if (event.dates && event.dates.length > 0) {
+          return event.dates.includes(dayStr);
+        }
+        return event.date === dayStr;
+      })
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
   };
 
-  // Helper to format 24h time to 12h AM/PM
   const formatTime = (time: string) => {
     if (!time) return '';
     const [hours, minutes] = time.split(':');
@@ -75,6 +78,10 @@ export const Calendar: React.FC<CalendarProps> = ({
       default: return 'bg-gray-400';
     }
   };
+
+  // Limit how many events show as text pills before the "More" button
+  const MAX_VISIBLE_EVENTS_DESKTOP = 3;
+  const MAX_VISIBLE_DOTS_MOBILE = 4;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden h-full flex flex-col transition-colors">
@@ -123,17 +130,17 @@ export const Calendar: React.FC<CalendarProps> = ({
 
       {/* Grid Body */}
       <div className="grid grid-cols-7 flex-grow auto-rows-fr bg-gray-200 dark:bg-gray-700 gap-px border-b border-gray-200 dark:border-gray-700">
-        {calendarDays.map((day, dayIdx) => {
+        {calendarDays.map((day) => {
           const dayEvents = getEventsForDay(day);
           const isCurrentMonth = isSameMonth(day, monthStart);
           const isDayToday = isToday(day);
-
+          
           return (
             <div 
               key={day.toString()} 
               onClick={() => onDateClick(day)}
               className={`
-                min-h-[80px] md:min-h-[120px] p-1 md:p-2 transition-colors relative group cursor-pointer flex flex-col gap-1
+                min-h-[80px] md:min-h-[120px] p-1 md:p-1.5 transition-colors relative group cursor-pointer flex flex-col
                 ${!isCurrentMonth ? 'bg-gray-50 dark:bg-gray-900/50 text-gray-400 dark:text-gray-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'}
                 ${isDayToday ? 'bg-blue-50/50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}
               `}
@@ -154,33 +161,30 @@ export const Calendar: React.FC<CalendarProps> = ({
                 className="md:hidden flex-1 flex flex-col items-center justify-center gap-1"
                 onClick={(e) => {
                    if (dayEvents.length > 0) {
-                     e.stopPropagation(); // Prevent setting date, open modal instead
+                     e.stopPropagation();
                      onMoreClick(day, dayEvents);
                    }
                 }}
               >
                 {dayEvents.length > 0 && (
-                  <div className="flex flex-wrap gap-1 justify-center max-w-full px-1">
-                    {dayEvents.slice(0, 5).map(event => (
+                  <div className="flex flex-wrap gap-1 justify-center max-w-full px-0.5">
+                    {dayEvents.slice(0, MAX_VISIBLE_DOTS_MOBILE).map(event => (
                       <div 
                         key={event.id} 
                         className={`w-1.5 h-1.5 rounded-full ${getStatusColorClass(event.status)}`} 
                       />
                     ))}
+                    {dayEvents.length > MAX_VISIBLE_DOTS_MOBILE && (
+                       <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400 leading-none">+{dayEvents.length - MAX_VISIBLE_DOTS_MOBILE}</span>
+                    )}
                   </div>
                 )}
-                {dayEvents.length > 5 && (
-                  <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400 leading-none">+{dayEvents.length - 5}</span>
-                )}
-                {dayEvents.length > 0 && (
-                   // Invisible touch target expansion
-                   <div className="absolute inset-x-0 bottom-0 h-2/3 bg-transparent" />
-                )}
+                {dayEvents.length > 0 && <div className="absolute inset-x-0 bottom-0 h-2/3 bg-transparent" />}
               </div>
 
-              {/* DESKTOP VIEW: Text Pills */}
+              {/* DESKTOP VIEW: Text Pills & Compact List */}
               <div className="hidden md:flex flex-1 flex-col gap-1 overflow-hidden">
-                {dayEvents.slice(0, 3).map(event => (
+                {dayEvents.slice(0, MAX_VISIBLE_EVENTS_DESKTOP).map(event => (
                   <button
                     key={event.id}
                     title={`${formatTime(event.startTime)} - ${event.eventTitle}`}
@@ -189,27 +193,32 @@ export const Calendar: React.FC<CalendarProps> = ({
                       onEventClick(event);
                     }}
                     className={`
-                      w-full text-left text-[10px] sm:text-xs px-1.5 py-1 rounded border truncate transition-all shadow-sm
+                      w-full text-left text-[10px] px-1.5 py-0.5 rounded border truncate transition-all shadow-sm flex items-center gap-1.5
                       ${event.status === 'Approved' ? 'bg-green-50 border-green-200 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:border-green-800 dark:text-green-300 dark:hover:bg-green-900/50' : 
                         event.status === 'Pending' ? 'bg-orange-50 border-orange-200 text-orange-800 hover:bg-orange-100 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-300 dark:hover:bg-orange-900/50' : 
                         event.status === 'Rejected' ? 'bg-red-50 border-red-200 text-red-800 hover:bg-red-100 dark:bg-red-900/30 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/50' :
                         'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600'}
                     `}
                   >
-                    <span className="font-bold mr-1">{formatTime(event.startTime)}</span>
-                    <span className="opacity-90">{event.eventTitle}</span>
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${getStatusColorClass(event.status)}`}></span>
+                    <span className="font-bold flex-shrink-0">{formatTime(event.startTime)}</span>
+                    <span className="opacity-90 truncate">{event.eventTitle}</span>
                   </button>
                 ))}
-                {dayEvents.length > 3 && (
+                
+                {/* Show More Button */}
+                {dayEvents.length > MAX_VISIBLE_EVENTS_DESKTOP && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onMoreClick(day, dayEvents);
                     }}
-                    className="mt-auto w-full text-left text-xs font-bold text-gray-500 hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-1 py-1 transition-colors flex items-center gap-1"
+                    className="mt-auto w-full text-left text-[10px] font-bold text-gray-500 hover:text-primary hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 rounded px-1 py-0.5 transition-colors flex items-center gap-1"
                   >
-                    <span className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full w-4 h-4 flex items-center justify-center text-[10px]">+</span>
-                    {dayEvents.length - 3} more
+                    <span className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-sm w-3.5 h-3.5 flex items-center justify-center text-[9px] font-bold">
+                      {dayEvents.length - MAX_VISIBLE_EVENTS_DESKTOP}+
+                    </span>
+                    more
                   </button>
                 )}
               </div>

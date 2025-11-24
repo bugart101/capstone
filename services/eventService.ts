@@ -12,7 +12,12 @@ export const eventService = {
       console.error('Error fetching events:', error);
       return [];
     }
-    return data || [];
+    
+    // Polyfill: Ensure 'dates' array exists for legacy events
+    return (data || []).map((event: any) => ({
+      ...event,
+      dates: (event.dates && event.dates.length > 0) ? event.dates : [event.date]
+    }));
   },
 
   createEvent: async (event: Omit<EventRequest, 'id' | 'createdAt' | 'status'>): Promise<EventRequest> => {
@@ -20,6 +25,9 @@ export const eventService = {
       .from('events')
       .insert({
         ...event,
+        // Ensure 'dates' is stored as JSONB array. 
+        // If we are passing just 'date', make sure 'dates' is set too
+        dates: event.dates && event.dates.length > 0 ? event.dates : [event.date],
         status: 'Pending',
         createdAt: Date.now()
       })
@@ -38,6 +46,7 @@ export const eventService = {
         eventTitle: event.eventTitle,
         facility: event.facility,
         date: event.date,
+        dates: event.dates,
         timeSlot: event.timeSlot,
         startTime: event.startTime,
         endTime: event.endTime,

@@ -13,7 +13,8 @@ export interface EventRequest {
   requesterName: string;
   eventTitle: string;
   facility: string;
-  date: string; // ISO Date string YYYY-MM-DD
+  date: string; // Primary/Start Date (ISO Date string YYYY-MM-DD)
+  dates: string[]; // Array of all selected dates (YYYY-MM-DD)
   timeSlot: string; // e.g., "Morning", "Afternoon" or specific range
   startTime: string; // HH:mm
   endTime: string; // HH:mm

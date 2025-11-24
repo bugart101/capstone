@@ -80,8 +80,8 @@ export const AccountPage: React.FC = () => {
 
   // Theme Handlers
   const toggleDarkMode = () => {
-    const newMode = themePrefs.mode === 'light' ? 'dark' : 'light';
-    const newPrefs = { ...themePrefs, mode: newMode };
+    const newMode: 'light' | 'dark' = themePrefs.mode === 'light' ? 'dark' : 'light';
+    const newPrefs: ThemePreferences = { ...themePrefs, mode: newMode };
     setThemePrefs(newPrefs);
     themeService.savePreferences(newPrefs);
   };

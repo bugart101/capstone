@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Filter, Edit, Trash2, 
-  CheckCircle, Clock, AlertTriangle, ListFilter, Eye, FileText, Info, XCircle, RefreshCw, X
+  CheckCircle, Clock, AlertTriangle, ListFilter, Eye, FileText, Info, XCircle, RefreshCw, X, Calendar as CalendarIcon, CalendarRange
 } from 'lucide-react';
 import { EventRequest, EventStatus, Facility, User, Equipment } from '../types';
 import { eventService } from '../services/eventService';
@@ -90,7 +91,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
     if (!selectedRequest) return;
     
     // Toggle status
-    const newStatus = currentStatus === 'Available' ? 'Unavailable' : 'Available';
+    const newStatus: 'Available' | 'Unavailable' = currentStatus === 'Available' ? 'Unavailable' : 'Available';
     
     const updatedEquipment = selectedRequest.equipment.map(e => 
       e.id === equipmentId ? { ...e, status: newStatus } : e
@@ -145,7 +146,32 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
     if (!selectedRequest) return;
 
     const equipmentList = selectedRequest.equipment.map(e => e.name).join(', ') || 'None';
-    const formattedDate = new Date(selectedRequest.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    
+    // Format date(s)
+    let dateDisplay = '';
+    if (selectedRequest.dates && selectedRequest.dates.length > 0) {
+      const sortedDates = [...selectedRequest.dates].sort();
+      const dateObjs = sortedDates.map(d => new Date(d));
+      const allSameYear = dateObjs.every(d => d.getFullYear() === dateObjs[0].getFullYear());
+      
+      if (dateObjs.length === 1) {
+        // Single Date
+        dateDisplay = dateObjs[0].toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      } else {
+        // Multiple Dates
+        if (allSameYear) {
+          // Format: Oct 1, Oct 2, 2023
+          const days = dateObjs.map(d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })).join(', ');
+          dateDisplay = `${days} ${dateObjs[0].getFullYear()}`;
+        } else {
+          // Format: Oct 1 2023; Jan 5 2024
+          dateDisplay = dateObjs.map(d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })).join('; ');
+        }
+      }
+    } else {
+      dateDisplay = new Date(selectedRequest.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
     const requestDate = new Date(selectedRequest.createdAt).toLocaleDateString();
 
     // COMPACT "SMALL" VERSION
@@ -224,8 +250,8 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
               <td class="value" colspan="3">${selectedRequest.facility}</td>
             </tr>
             <tr>
-              <td class="label">Date</td>
-              <td class="value">${formattedDate}</td>
+              <td class="label">Date(s)</td>
+              <td class="value">${dateDisplay}</td>
               <td class="label">Time</td>
               <td class="value">${formatTime(selectedRequest.startTime)} - ${formatTime(selectedRequest.endTime)}</td>
             </tr>
@@ -319,7 +345,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
       <span className={`
         ${className} 
         ${size === 'lg' ? 'px-3 py-1 text-sm' : 'px-2 py-0.5 text-xs'} 
-        rounded-full font-bold border inline-flex items-center gap-1.5 transition-colors duration-200
+        rounded-full font-bold border inline-flex items-center gap-1.5 transition-colors duration-200 whitespace-nowrap
       `}>
         <span className={`w-2 h-2 rounded-full ${dotClass}`}></span>
         {status}
@@ -333,38 +359,53 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
   // REUSABLE DETAILS RENDERER (Used in both Desktop Panel and Mobile Modal)
   // --------------------------------------------------------------------------
   const renderRequestDetails = (request: EventRequest, isMobileView: boolean) => {
+    const isMultiDate = request.dates && request.dates.length > 1;
+
     return (
       <>
-        <div className={`p-6 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50 dark:bg-gray-900 transition-colors ${isMobileView ? 'sticky top-0 z-10' : ''}`}>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 leading-tight">{request.eventTitle}</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-mono mt-1">ID: {request.id.slice(0, 8)}</p>
+        {/* Header Section */}
+        <div className={`p-5 md:p-6 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-start justify-between gap-4 bg-gray-50 dark:bg-gray-900 transition-colors ${isMobileView ? 'sticky top-0 z-10 shadow-sm' : ''}`}>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 leading-tight break-words">{request.eventTitle}</h2>
+            <div className="flex flex-wrap items-center gap-2 mt-1.5">
+              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-mono bg-white dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">ID: {request.id.slice(0, 8)}</p>
+              {isMultiDate && (
+                <span className="px-2 py-0.5 bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 text-xs font-bold rounded-full flex items-center gap-1 whitespace-nowrap">
+                   <CalendarRange size={12} /> Multi-Day
+                </span>
+              )}
+            </div>
           </div>
-          <div>
+          <div className="flex-shrink-0">
             {getStatusBadge(request.status, 'lg')}
           </div>
         </div>
 
-        <div className={`flex-1 overflow-y-auto p-6 bg-white dark:bg-gray-800 transition-colors ${isMobileView ? 'pb-24' : ''} [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 hover:[&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full`}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        {/* Content Body */}
+        <div className={`flex-1 overflow-y-auto p-4 md:p-6 bg-white dark:bg-gray-800 transition-colors ${isMobileView ? 'pb-24' : ''} [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 hover:[&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8">
             <div className="space-y-4">
-              <h3 className="text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">Event Details</h3>
-              <div className="grid grid-cols-2 gap-y-6">
+              <h3 className="text-sm md:text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">Event Details</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 md:gap-y-6">
                 <div>
-                  <span className="block text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Requester</span>
-                  <span className="block font-bold text-gray-900 dark:text-gray-100 text-lg">{request.requesterName}</span>
+                  <span className="block text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Requester</span>
+                  <span className="block font-bold text-gray-900 dark:text-gray-100 text-base md:text-lg break-words">{request.requesterName}</span>
                 </div>
                 <div>
-                  <span className="block text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Facility</span>
-                  <span className="block font-bold text-gray-900 dark:text-gray-100 text-lg">{request.facility}</span>
+                  <span className="block text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Facility</span>
+                  <span className="block font-bold text-gray-900 dark:text-gray-100 text-base md:text-lg break-words">{request.facility}</span>
                 </div>
+                
+                {!isMultiDate && (
+                   <div>
+                    <span className="block text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Date</span>
+                    <span className="block font-bold text-gray-900 dark:text-gray-100 text-base md:text-lg">{new Date(request.date).toLocaleDateString()}</span>
+                   </div>
+                )}
+
                 <div>
-                  <span className="block text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Date</span>
-                  <span className="block font-bold text-gray-900 dark:text-gray-100 text-lg">{new Date(request.date).toLocaleDateString()}</span>
-                </div>
-                <div>
-                  <span className="block text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Time Slot</span>
-                  <span className="block font-bold text-gray-900 dark:text-gray-100 text-lg">{request.timeSlot}</span>
+                  <span className="block text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Time Slot</span>
+                  <span className="block font-bold text-gray-900 dark:text-gray-100 text-base md:text-lg">{request.timeSlot}</span>
                 </div>
               </div>
               
@@ -373,13 +414,13 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
                 if (amenities.length > 0) {
                   return (
                       <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md border border-blue-100 dark:border-blue-800 mt-2 transition-colors">
-                        <div className="flex items-center gap-1.5 text-sm font-bold text-blue-800 dark:text-blue-300 mb-1.5">
+                        <div className="flex items-center gap-1.5 text-xs md:text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">
                           <Info size={14} />
                           Facility Amenities (Included)
                         </div>
-                        <div className="text-sm text-blue-700 dark:text-blue-200 leading-relaxed flex flex-wrap gap-1">
+                        <div className="text-sm text-blue-700 dark:text-blue-200 leading-relaxed flex flex-wrap gap-1.5">
                           {amenities.map((item, idx) => (
-                            <span key={idx} className="bg-white dark:bg-gray-800 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-700">
+                            <span key={idx} className="bg-white dark:bg-gray-800 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-700 text-xs">
                               {item}
                             </span>
                           ))}
@@ -393,64 +434,123 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">Timing</h3>
-              <div className="flex items-center gap-4 bg-blue-50 dark:bg-blue-900/20 p-5 rounded-lg text-blue-900 dark:text-blue-200 transition-colors">
-                <Clock className="text-blue-600 dark:text-blue-400 flex-shrink-0" size={24} />
-                <div>
-                  <div className="text-sm font-semibold mb-0.5">Start Time</div>
-                  <div className="text-xl font-bold">{formatTime(request.startTime)}</div>
+              <h3 className="text-sm md:text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">Timing</h3>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-blue-900 dark:text-blue-200 transition-colors">
+                <div className="hidden sm:block">
+                   <Clock className="text-blue-600 dark:text-blue-400 flex-shrink-0" size={24} />
                 </div>
-                <div className="h-10 w-px bg-blue-200 dark:bg-blue-700 mx-2"></div>
-                <div>
-                  <div className="text-sm font-semibold mb-0.5">End Time</div>
-                  <div className="text-xl font-bold">{formatTime(request.endTime)}</div>
+                <div className="flex items-center gap-2 sm:hidden text-sm font-bold text-blue-800 dark:text-blue-300 mb-1">
+                   <Clock size={16} /> Time Schedule
+                </div>
+                
+                <div className="flex-1 grid grid-cols-2 sm:block gap-4">
+                   <div className="sm:mb-0">
+                      <div className="text-xs font-semibold mb-0.5 opacity-70">Start Time</div>
+                      <div className="text-lg md:text-xl font-bold">{formatTime(request.startTime)}</div>
+                   </div>
+                   
+                   {/* Divider: Horizontal on mobile, Vertical on desktop */}
+                   <div className="hidden sm:block h-10 w-px bg-blue-200 dark:bg-blue-700 mx-2 float-left"></div>
+                   
+                   <div className="sm:mb-0 text-right sm:text-left">
+                      <div className="text-xs font-semibold mb-0.5 opacity-70">End Time</div>
+                      <div className="text-lg md:text-xl font-bold">{formatTime(request.endTime)}</div>
+                   </div>
                 </div>
               </div>
             </div>
           </div>
+          
+          {/* EXCLUSIVE MULTI-DATE SCHEDULE VIEW */}
+          {isMultiDate && (
+             <div className="space-y-4 mb-8">
+                <h3 className="text-sm md:text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2 flex items-center gap-2">
+                  <CalendarIcon size={16} /> Event Schedule ({request.dates.length} days)
+                </h3>
+                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 md:p-4 border border-gray-100 dark:border-gray-700">
+                   <div className="flex flex-wrap gap-2">
+                      {request.dates.sort().map(date => (
+                        <div key={date} className="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 shadow-sm">
+                           <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>
+                           <span className="font-medium text-gray-900 dark:text-gray-100 text-sm whitespace-nowrap">{new Date(date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+             </div>
+          )}
 
           <div className="space-y-4">
-            <h3 className="text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">Requested Equipment</h3>
+            <h3 className="text-sm md:text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">Requested Equipment</h3>
             {request.equipment.length > 0 ? (
-              <div className="overflow-hidden border border-gray-200 dark:border-gray-700 rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-900">
-                    <tr>
-                      <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Item Name</th>
-                      <th scope="col" className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Availability</th>
-                      {isAdmin && (
-                          <th scope="col" className="px-4 md:px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Action</th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {request.equipment.map((item) => {
-                      const isAvailable = item.status === 'Available' || item.status === undefined;
-                      return (
-                        <tr key={item.id}>
-                          <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm md:text-base font-bold text-gray-900 dark:text-gray-100">{item.name}</td>
-                          <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm">
-                            <span className={`flex items-center gap-1.5 ${isAvailable ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
-                              {isAvailable ? <CheckCircle size={18} /> : <XCircle size={18} />}
-                              <span className="font-bold">{isAvailable ? 'Available' : 'Not Available'}</span>
-                            </span>
-                          </td>
-                          {isAdmin && (
-                            <td className="px-4 md:px-6 py-4 whitespace-nowrap text-right text-sm">
-                                <button
-                                  onClick={() => handleEquipmentStatusChange(item.id, item.status || 'Available')}
-                                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-bold text-xs border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-                                >
-                                  Change
-                                </button>
+              <>
+                {/* Desktop View: Table */}
+                <div className="hidden md:block overflow-hidden border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-900">
+                      <tr>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Item Name</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Availability</th>
+                        {isAdmin && (
+                            <th scope="col" className="px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Action</th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                      {request.equipment.map((item) => {
+                        const isAvailable = item.status === 'Available' || item.status === undefined;
+                        return (
+                          <tr key={item.id}>
+                            <td className="px-6 py-4 whitespace-nowrap text-base font-bold text-gray-900 dark:text-gray-100">{item.name}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <span className={`flex items-center gap-1.5 ${isAvailable ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                                {isAvailable ? <CheckCircle size={18} /> : <XCircle size={18} />}
+                                <span className="font-bold">{isAvailable ? 'Available' : 'Not Available'}</span>
+                              </span>
                             </td>
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                            {isAdmin && (
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                  <button
+                                    onClick={() => handleEquipmentStatusChange(item.id, item.status || 'Available')}
+                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-bold text-xs border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                                  >
+                                    Change
+                                  </button>
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile View: Cards List */}
+                <div className="md:hidden space-y-3">
+                  {request.equipment.map((item) => {
+                    const isAvailable = item.status === 'Available' || item.status === undefined;
+                    return (
+                      <div key={item.id} className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between">
+                         <div>
+                            <div className="font-bold text-gray-900 dark:text-gray-100 mb-1">{item.name}</div>
+                            <span className={`flex items-center gap-1.5 text-xs font-bold ${isAvailable ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                                {isAvailable ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                                {isAvailable ? 'Available' : 'Not Available'}
+                            </span>
+                         </div>
+                         {isAdmin && (
+                            <button
+                              onClick={() => handleEquipmentStatusChange(item.id, item.status || 'Available')}
+                              className="text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded text-xs font-bold"
+                            >
+                              Change
+                            </button>
+                         )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             ) : (
               <p className="text-sm text-gray-500 dark:text-gray-400 italic">No equipment requested.</p>
             )}
@@ -458,10 +558,10 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
         </div>
 
         {/* Action Bar */}
-        <div className={`p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-3 items-center justify-between transition-colors ${isMobileView ? 'sticky bottom-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]' : ''}`}>
+        <div className={`p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between transition-colors ${isMobileView ? 'sticky bottom-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]' : ''}`}>
           
           {isAdmin ? (
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 w-full md:w-auto scrollbar-hide">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 w-full sm:w-auto scrollbar-hide">
               <span className="text-sm font-bold text-gray-700 dark:text-gray-300 mr-2 flex-shrink-0">Set Status:</span>
               <div className="flex bg-white dark:bg-gray-800 rounded-md shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex-shrink-0">
                 <button 
@@ -491,12 +591,12 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               {/* User only sees cancel if not already cancelled */}
               {request.status !== 'Canceled' && (
                 <button 
                   onClick={() => handleStatusChange('Canceled')}
-                  className="px-3 py-2 text-xs font-bold rounded-md transition-colors bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600"
+                  className="w-full sm:w-auto px-3 py-2 text-xs font-bold rounded-md transition-colors bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600"
                 >
                   Cancel Request
                 </button>
@@ -504,19 +604,19 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
             </div>
           )}
 
-          <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
+          <div className="flex gap-2 w-full sm:w-auto">
               {isAdmin && (
                 <button 
                   onClick={() => setIsEditModalOpen(true)}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
                 >
-                  <Edit size={16} /> Edit
+                  <Edit size={16} /> <span className="sm:hidden">Edit</span>
                 </button>
               )}
               
               <button 
                 onClick={handleDownloadWord}
-                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
               >
                 <FileText size={16} className="text-blue-600 dark:text-blue-400" /> Word
               </button>
@@ -524,9 +624,9 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
               {isAdmin && (
                 <button 
                   onClick={handleDeleteClick}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-md text-sm font-bold hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors shadow-sm"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-md text-sm font-bold hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors shadow-sm"
                 >
-                  <Trash2 size={16} /> Delete
+                  <Trash2 size={16} /> <span className="sm:hidden">Delete</span>
                 </button>
               )}
           </div>
@@ -594,6 +694,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
           ) : (
             filteredEvents.map(event => {
               const facilityColor = getFacilityColor(event.facility);
+              const isMultiDate = event.dates && event.dates.length > 1;
               return (
                 <div 
                   key={event.id}
@@ -622,6 +723,20 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
                     {getStatusBadge(event.status)}
                   </div>
                   <h3 className="text-gray-900 dark:text-gray-100 font-bold text-base truncate mb-2">{event.eventTitle}</h3>
+                  
+                  {/* Date Display */}
+                  <div className="flex items-center gap-2 mb-2">
+                      {isMultiDate ? (
+                        <span className="text-xs font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5 rounded flex items-center gap-1">
+                           <CalendarRange size={10} /> {event.dates.length} Dates
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                           <CalendarIcon size={10} /> {new Date(event.date).toLocaleDateString()}
+                        </span>
+                      )}
+                  </div>
+
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-xs text-gray-500 dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded">#{event.id.slice(0,6)}</span>
                     <button className="text-xs font-semibold text-primary hover:text-primary-hover flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -699,7 +814,11 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
                 <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 text-sm">
                   <span className="font-bold">{selectedRequest.eventTitle}</span>
                   <br/>
-                  <span className="text-gray-500 dark:text-gray-400">{selectedRequest.date}</span>
+                  {selectedRequest.dates && selectedRequest.dates.length > 1 ? (
+                     <span className="text-purple-600 dark:text-purple-400 font-bold">{selectedRequest.dates.length} Dates selected</span>
+                  ) : (
+                     <span className="text-gray-500 dark:text-gray-400">{selectedRequest.date}</span>
+                  )}
                 </div>
               )}
             </div>
