@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Filter, Edit, Trash2, 
-  CheckCircle, Clock, AlertTriangle, ListFilter, Eye, FileText, Info, XCircle, RefreshCw, X, Calendar as CalendarIcon, CalendarRange
+  CheckCircle, Clock, AlertTriangle, ListFilter, Eye, FileText, Info, XCircle, RefreshCw, X, Calendar as CalendarIcon, CalendarRange, MessageSquare
 } from 'lucide-react';
 import { EventRequest, EventStatus, Facility, User, Equipment } from '../types';
 import { eventService } from '../services/eventService';
@@ -25,6 +25,11 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [filteredEvents, setFilteredEvents] = useState<EventRequest[]>([]);
+  
+  // Status Reason Modal State
+  const [isReasonModalOpen, setIsReasonModalOpen] = useState(false);
+  const [statusReason, setStatusReason] = useState('');
+  const [pendingStatus, setPendingStatus] = useState<EventStatus | null>(null);
   
   // Mobile Details Modal State
   const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
@@ -80,9 +85,36 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
     }
   }, [events, searchQuery, sortOrder, filterStatus, currentUser]);
 
-  const handleStatusChange = async (newStatus: EventStatus) => {
+  const initiateStatusChange = (newStatus: EventStatus) => {
     if (!selectedRequest) return;
-    const updated = { ...selectedRequest, status: newStatus };
+    
+    // If Rejecting or Canceling, require a reason
+    if (newStatus === 'Rejected' || newStatus === 'Canceled') {
+      setPendingStatus(newStatus);
+      setStatusReason('');
+      setIsReasonModalOpen(true);
+    } else {
+      // For Approval or Pending, just proceed
+      handleStatusChange(newStatus);
+    }
+  };
+
+  const confirmStatusChange = () => {
+    if (pendingStatus) {
+      handleStatusChange(pendingStatus, statusReason);
+      setIsReasonModalOpen(false);
+      setPendingStatus(null);
+      setStatusReason('');
+    }
+  };
+
+  const handleStatusChange = async (newStatus: EventStatus, reason?: string) => {
+    if (!selectedRequest) return;
+    const updated = { 
+      ...selectedRequest, 
+      status: newStatus,
+      cancellationReason: reason || undefined
+    };
     await eventService.updateEvent(updated);
     onEventsUpdate(); 
   };
@@ -173,6 +205,10 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
     }
 
     const requestDate = new Date(selectedRequest.createdAt).toLocaleDateString();
+    
+    // Add Reason to Remarks if canceled/rejected
+    const remarks = selectedRequest.cancellationReason ? 
+      `${selectedRequest.status} Reason: ${selectedRequest.cancellationReason}` : '';
 
     // COMPACT "SMALL" VERSION
     const wordContent = `
@@ -263,7 +299,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
               <td class="label">Status</td>
               <td class="value" style="text-transform: uppercase;">${selectedRequest.status}</td>
               <td class="label">Remarks</td>
-              <td class="value"></td>
+              <td class="value">${remarks}</td>
             </tr>
           </table>
 
@@ -383,6 +419,22 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
 
         {/* Content Body */}
         <div className={`flex-1 overflow-y-auto p-4 md:p-6 bg-white dark:bg-gray-800 transition-colors ${isMobileView ? 'pb-24' : ''} [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 hover:[&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full`}>
+          
+          {/* REASON BOX (Visible if Rejected or Canceled) */}
+          {request.cancellationReason && (request.status === 'Rejected' || request.status === 'Canceled') && (
+             <div className="mb-6 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                   <AlertTriangle className="text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" size={18} />
+                   <div>
+                      <h4 className="text-sm font-bold text-red-800 dark:text-red-200 mb-1">
+                        {request.status === 'Rejected' ? 'Rejection Reason' : 'Cancellation Reason'}
+                      </h4>
+                      <p className="text-sm text-red-700 dark:text-red-300 italic">"{request.cancellationReason}"</p>
+                   </div>
+                </div>
+             </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8">
             <div className="space-y-4">
               <h3 className="text-sm md:text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">Event Details</h3>
@@ -565,25 +617,25 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
               <span className="text-sm font-bold text-gray-700 dark:text-gray-300 mr-2 flex-shrink-0">Set Status:</span>
               <div className="flex bg-white dark:bg-gray-800 rounded-md shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex-shrink-0">
                 <button 
-                  onClick={() => handleStatusChange('Pending')}
+                  onClick={() => initiateStatusChange('Pending')}
                   className={`px-3 py-1.5 text-xs font-medium transition-colors ${request.status === 'Pending' ? 'bg-orange-500 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                 >
                   Pending
                 </button>
                 <button 
-                  onClick={() => handleStatusChange('Approved')}
+                  onClick={() => initiateStatusChange('Approved')}
                   className={`px-3 py-1.5 text-xs font-medium transition-colors ${request.status === 'Approved' ? 'bg-green-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                 >
                   Approved
                 </button>
                 <button 
-                  onClick={() => handleStatusChange('Rejected')}
+                  onClick={() => initiateStatusChange('Rejected')}
                   className={`px-3 py-1.5 text-xs font-medium transition-colors ${request.status === 'Rejected' ? 'bg-red-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                 >
                   Rejected
                 </button>
                 <button 
-                  onClick={() => handleStatusChange('Canceled')}
+                  onClick={() => initiateStatusChange('Canceled')}
                   className={`px-3 py-1.5 text-xs font-medium transition-colors ${request.status === 'Canceled' ? 'bg-gray-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                 >
                   Canceled
@@ -595,7 +647,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
               {/* User only sees cancel if not already cancelled */}
               {request.status !== 'Canceled' && (
                 <button 
-                  onClick={() => handleStatusChange('Canceled')}
+                  onClick={() => initiateStatusChange('Canceled')}
                   className="w-full sm:w-auto px-3 py-2 text-xs font-bold rounded-md transition-colors bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600"
                 >
                   Cancel Request
@@ -773,6 +825,52 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
       >
         <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden flex flex-col max-h-[85vh]">
            {selectedRequest && renderRequestDetails(selectedRequest, true)}
+        </div>
+      </Modal>
+
+      {/* STATUS REASON MODAL */}
+      <Modal
+        isOpen={isReasonModalOpen}
+        onClose={() => setIsReasonModalOpen(false)}
+        title={pendingStatus === 'Rejected' ? 'Reject Request' : 'Cancel Request'}
+      >
+        <div className="space-y-4 text-gray-900 dark:text-gray-100">
+           <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-100 dark:border-gray-600 text-sm">
+             <p className="mb-2">Please provide a reason for {pendingStatus === 'Rejected' ? 'rejecting' : 'canceling'} this request. This will be visible to the requester.</p>
+             <div className="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400">
+                <Info size={14} className="mt-0.5" />
+                <span>Example: "Room unavailable due to maintenance", "Change of plans", etc.</span>
+             </div>
+           </div>
+
+           <div>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">
+                Reason / Remarks
+              </label>
+              <textarea
+                value={statusReason}
+                onChange={(e) => setStatusReason(e.target.value)}
+                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 min-h-[100px]"
+                placeholder="Enter reason here..."
+                autoFocus
+              ></textarea>
+           </div>
+
+           <div className="flex justify-end gap-3 pt-2">
+             <button 
+                onClick={() => setIsReasonModalOpen(false)}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+             >
+                Back
+             </button>
+             <button 
+                onClick={confirmStatusChange}
+                disabled={!statusReason.trim()}
+                className="px-4 py-2 bg-primary text-white rounded-md font-bold text-sm hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+             >
+                Confirm {pendingStatus}
+             </button>
+           </div>
         </div>
       </Modal>
 

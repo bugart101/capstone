@@ -51,7 +51,8 @@ export const eventService = {
         startTime: event.startTime,
         endTime: event.endTime,
         equipment: event.equipment,
-        status: event.status
+        status: event.status,
+        cancellationReason: event.cancellationReason // Save the reason
       })
       .eq('id', event.id)
       .select()

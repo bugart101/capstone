@@ -14,7 +14,7 @@ import { facilityService } from './services/facilityService';
 import { authService } from './services/authService';
 import { notificationService } from './services/notificationService';
 import { themeService } from './services/themeService';
-import { Calendar as CalendarIcon, Clock, MapPin, User as UserIcon, Package, Menu, Home, ListChecks, UserCircle, Building2, Info, LogOut, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin, User as UserIcon, Package, Menu, Home, ListChecks, UserCircle, Building2, Info, LogOut, ChevronRight, AlertTriangle } from 'lucide-react';
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -403,6 +403,21 @@ const App: React.FC = () => {
                  <span className="text-sm text-gray-500 dark:text-gray-400 font-mono">#{selectedEvent.id.slice(0, 6)}</span>
                </div>
             </div>
+
+            {/* CANCELLATION/REJECTION REASON DISPLAY */}
+            {selectedEvent.cancellationReason && (selectedEvent.status === 'Rejected' || selectedEvent.status === 'Canceled') && (
+              <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" size={18} />
+                  <div>
+                    <h4 className="text-sm font-bold text-red-800 dark:text-red-200 mb-1">
+                      {selectedEvent.status === 'Rejected' ? 'Rejection Reason' : 'Cancellation Reason'}
+                    </h4>
+                    <p className="text-sm text-red-700 dark:text-red-300 italic">"{selectedEvent.cancellationReason}"</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 gap-6">
               <div className="flex items-start gap-4">

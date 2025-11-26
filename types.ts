@@ -20,6 +20,7 @@ export interface EventRequest {
   endTime: string; // HH:mm
   equipment: Equipment[];
   status: EventStatus;
+  cancellationReason?: string; // Reason for rejection or cancellation
   createdAt: number;
 }
 
