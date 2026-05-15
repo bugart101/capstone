@@ -109,16 +109,16 @@ export const AccountPage: React.FC = () => {
         {/* Dark Mode Toggle */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Theme Mode</label>
-          <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg w-fit">
+          <div className="flex bg-gray-100 dark:bg-gray-700/50 p-1 rounded-lg w-fit border border-gray-200 dark:border-gray-600">
             <button
               onClick={() => themePrefs.mode !== 'light' && toggleDarkMode()}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${themePrefs.mode === 'light' ? 'bg-white shadow text-gray-900' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${themePrefs.mode === 'light' ? 'bg-primary text-white shadow-md' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
             >
               <Sun size={16} /> Light
             </button>
             <button
               onClick={() => themePrefs.mode !== 'dark' && toggleDarkMode()}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${themePrefs.mode === 'dark' ? 'bg-gray-600 text-white shadow' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${themePrefs.mode === 'dark' ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
             >
               <Moon size={16} /> Dark
             </button>
@@ -221,12 +221,12 @@ export const AccountPage: React.FC = () => {
               <div key={user.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${user.role === 'ADMIN' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'}`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${user.role === 'ADMIN' ? 'bg-primary/10 text-primary' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
                       {user.role === 'ADMIN' ? <Shield size={20} /> : <UserIcon size={20} />}
                     </div>
                     <div>
                       <h3 className="font-bold text-gray-900 dark:text-gray-100">{user.fullName}</h3>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${user.role === 'ADMIN' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'}`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${user.role === 'ADMIN' ? 'bg-primary/20 text-primary border border-primary/20' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600'}`}>
                         {user.role}
                       </span>
                     </div>
@@ -247,7 +247,7 @@ export const AccountPage: React.FC = () => {
                 <div className="pt-4 border-t border-gray-100 dark:border-gray-700 flex gap-2">
                   <button 
                     onClick={() => handleEdit(user)}
-                    className="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 py-2 bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded text-sm font-bold text-primary hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
                   >
                     <Edit size={14} /> Edit
                   </button>

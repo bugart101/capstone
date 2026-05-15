@@ -1,17 +1,5 @@
-
 import React from 'react';
-import { 
-  format, 
-  startOfMonth, 
-  endOfMonth, 
-  startOfWeek, 
-  endOfWeek, 
-  eachDayOfInterval, 
-  isSameMonth, 
-  isToday,
-  addMonths, 
-  subMonths
-} from 'date-fns';
+import * as dateFns from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar as CalIcon } from 'lucide-react';
 import { EventRequest } from '../types';
 
@@ -32,24 +20,24 @@ export const Calendar: React.FC<CalendarProps> = ({
   onDateClick,
   onMoreClick
 }) => {
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart);
-  const endDate = endOfWeek(monthEnd);
+  const monthStart = dateFns.startOfMonth(currentDate);
+  const monthEnd = dateFns.endOfMonth(monthStart);
+  const startDate = dateFns.startOfWeek(monthStart);
+  const endDate = dateFns.endOfWeek(monthEnd);
 
-  const calendarDays = eachDayOfInterval({
+  const calendarDays = dateFns.eachDayOfInterval({
     start: startDate,
     end: endDate,
   });
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  const nextMonth = () => onDateChange(addMonths(currentDate, 1));
-  const prevMonth = () => onDateChange(subMonths(currentDate, 1));
+  const nextMonth = () => onDateChange(dateFns.addMonths(currentDate, 1));
+  const prevMonth = () => onDateChange(dateFns.subMonths(currentDate, 1));
   const goToToday = () => onDateChange(new Date());
 
   const getEventsForDay = (day: Date) => {
-    const dayStr = format(day, 'yyyy-MM-dd');
+    const dayStr = dateFns.format(day, 'yyyy-MM-dd');
     
     return events
       .filter(event => {
@@ -80,7 +68,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   };
 
   // Limit how many events show as text pills before the "More" button
-  const MAX_VISIBLE_EVENTS_DESKTOP = 3;
+  const MAX_VISIBLE_EVENTS_DESKTOP = 2;
   const MAX_VISIBLE_DOTS_MOBILE = 4;
 
   return (
@@ -91,7 +79,7 @@ export const Calendar: React.FC<CalendarProps> = ({
            <div className="flex items-center gap-2 text-primary">
                <CalIcon size={20} className="md:w-6 md:h-6" />
                <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-                {format(currentDate, 'MMMM yyyy')}
+                {dateFns.format(currentDate, 'MMMM yyyy')}
                </h2>
            </div>
            <button 
@@ -132,15 +120,15 @@ export const Calendar: React.FC<CalendarProps> = ({
       <div className="grid grid-cols-7 flex-grow auto-rows-fr bg-gray-200 dark:bg-gray-700 gap-px border-b border-gray-200 dark:border-gray-700">
         {calendarDays.map((day) => {
           const dayEvents = getEventsForDay(day);
-          const isCurrentMonth = isSameMonth(day, monthStart);
-          const isDayToday = isToday(day);
+          const isCurrentMonth = dateFns.isSameMonth(day, monthStart);
+          const isDayToday = dateFns.isToday(day);
           
           return (
             <div 
               key={day.toString()} 
               onClick={() => onDateClick(day)}
               className={`
-                min-h-[80px] md:min-h-[120px] p-1 md:p-1.5 transition-colors relative group cursor-pointer flex flex-col
+                min-h-[80px] md:min-h-0 p-1 md:p-1.5 transition-colors relative group cursor-pointer flex flex-col
                 ${!isCurrentMonth ? 'bg-gray-50 dark:bg-gray-900/50 text-gray-400 dark:text-gray-600' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'}
                 ${isDayToday ? 'bg-blue-50/50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}
               `}
@@ -152,13 +140,36 @@ export const Calendar: React.FC<CalendarProps> = ({
                     ${isDayToday ? 'bg-primary text-white shadow-md' : ''}
                   `}
                 >
-                  {format(day, 'd')}
+                  {dateFns.format(day, 'd')}
                 </span>
+                
+                {/* Status indicators for quick glance */}
+                {dayEvents.length > 0 && !isCurrentMonth && (
+                  <div className="flex gap-0.5 mt-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-pulse" />
+                  </div>
+                )}
+                {dayEvents.length > 0 && isCurrentMonth && (
+                  <div className="flex -space-x-1 overflow-hidden h-4 items-center">
+                    {dayEvents.slice(0, 3).map((event, idx) => (
+                      <div 
+                        key={event.id}
+                        className={`w-2.5 h-2.5 rounded-full border border-white dark:border-gray-800 ${getStatusColorClass(event.status)}`}
+                        style={{ zIndex: 10 - idx }}
+                      />
+                    ))}
+                    {dayEvents.length > 3 && (
+                      <span className="ml-1 text-[9px] font-bold text-gray-500 dark:text-gray-400">
+                        +{dayEvents.length - 3}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
               
               {/* MOBILE VIEW: Dots / Indicators */}
               <div 
-                className="md:hidden flex-1 flex flex-col items-center justify-center gap-1"
+                className="md:hidden flex-1 flex flex-col items-center justify-center -mt-2"
                 onClick={(e) => {
                    if (dayEvents.length > 0) {
                      e.stopPropagation();
@@ -167,19 +178,17 @@ export const Calendar: React.FC<CalendarProps> = ({
                 }}
               >
                 {dayEvents.length > 0 && (
-                  <div className="flex flex-wrap gap-1 justify-center max-w-full px-0.5">
-                    {dayEvents.slice(0, MAX_VISIBLE_DOTS_MOBILE).map(event => (
-                      <div 
-                        key={event.id} 
-                        className={`w-1.5 h-1.5 rounded-full ${getStatusColorClass(event.status)}`} 
-                      />
-                    ))}
-                    {dayEvents.length > MAX_VISIBLE_DOTS_MOBILE && (
-                       <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400 leading-none">+{dayEvents.length - MAX_VISIBLE_DOTS_MOBILE}</span>
-                    )}
+                  <div className="bg-primary/5 dark:bg-primary/20 rounded-lg px-2 py-1 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-primary leading-none">
+                      {dayEvents.length}
+                    </span>
+                    <div className="flex gap-0.5">
+                      {dayEvents.slice(0, 3).map(e => (
+                        <div key={e.id} className={`w-1 h-1 rounded-full ${getStatusColorClass(e.status)}`} />
+                      ))}
+                    </div>
                   </div>
                 )}
-                {dayEvents.length > 0 && <div className="absolute inset-x-0 bottom-0 h-2/3 bg-transparent" />}
               </div>
 
               {/* DESKTOP VIEW: Text Pills & Compact List */}

@@ -88,13 +88,11 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
   const initiateStatusChange = (newStatus: EventStatus) => {
     if (!selectedRequest) return;
     
-    // If Rejecting or Canceling, require a reason
     if (newStatus === 'Rejected' || newStatus === 'Canceled') {
       setPendingStatus(newStatus);
       setStatusReason('');
       setIsReasonModalOpen(true);
     } else {
-      // For Approval or Pending, just proceed
       handleStatusChange(newStatus);
     }
   };
@@ -122,7 +120,6 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
   const handleEquipmentStatusChange = async (equipmentId: string, currentStatus: string) => {
     if (!selectedRequest) return;
     
-    // Toggle status
     const newStatus: 'Available' | 'Unavailable' = currentStatus === 'Available' ? 'Unavailable' : 'Available';
     
     const updatedEquipment = selectedRequest.equipment.map(e => 
@@ -130,11 +127,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
     );
     
     const updatedRequest = { ...selectedRequest, equipment: updatedEquipment };
-    
-    // Update local state immediately for UI response
     setSelectedRequest(updatedRequest);
-    
-    // Persist to database
     await eventService.updateEvent(updatedRequest);
     onEventsUpdate();
   };
@@ -149,7 +142,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
     await eventService.deleteEvent(selectedRequest.id);
     setSelectedRequest(null);
     setIsDeleteModalOpen(false);
-    setIsMobileDetailOpen(false); // Close mobile modal if open
+    setIsMobileDetailOpen(false);
     onEventsUpdate();
   };
 
@@ -158,13 +151,11 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
     return facility ? facility.equipment : [];
   };
 
-  // Helper to get facility color
   const getFacilityColor = (facilityName: string) => {
     const facility = facilities.find(f => f.name === facilityName);
-    return facility?.color || '#3b82f6'; // Default to blue
+    return facility?.color || '#3b82f6';
   };
 
-  // Helper to format 24h time to 12h AM/PM
   const formatTime = (time: string) => {
     if (!time) return '';
     const [hours, minutes] = time.split(':');
@@ -179,7 +170,6 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
 
     const equipmentList = selectedRequest.equipment.map(e => e.name).join(', ') || 'None';
     
-    // Format date(s)
     let dateDisplay = '';
     if (selectedRequest.dates && selectedRequest.dates.length > 0) {
       const sortedDates = [...selectedRequest.dates].sort();
@@ -187,16 +177,12 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
       const allSameYear = dateObjs.every(d => d.getFullYear() === dateObjs[0].getFullYear());
       
       if (dateObjs.length === 1) {
-        // Single Date
         dateDisplay = dateObjs[0].toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
       } else {
-        // Multiple Dates
         if (allSameYear) {
-          // Format: Oct 1, Oct 2, 2023
           const days = dateObjs.map(d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })).join(', ');
           dateDisplay = `${days} ${dateObjs[0].getFullYear()}`;
         } else {
-          // Format: Oct 1 2023; Jan 5 2024
           dateDisplay = dateObjs.map(d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })).join('; ');
         }
       }
@@ -206,11 +192,9 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
 
     const requestDate = new Date(selectedRequest.createdAt).toLocaleDateString();
     
-    // Add Reason to Remarks if canceled/rejected
     const remarks = selectedRequest.cancellationReason ? 
       `${selectedRequest.status} Reason: ${selectedRequest.cancellationReason}` : '';
 
-    // COMPACT "SMALL" VERSION
     const wordContent = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head>
@@ -345,14 +329,12 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
     const link = document.createElement('a');
     link.href = url;
     
-    // Sanitize filename for mobile compatibility
     const safeTitle = selectedRequest.eventTitle.replace(/[^a-z0-9]/gi, '_');
     link.setAttribute('download', `Request_${safeTitle}.doc`);
     
     document.body.appendChild(link);
     link.click();
     
-    // Delay cleanup to ensure download triggers on mobile
     setTimeout(() => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
@@ -391,15 +373,11 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
 
   const isAdmin = currentUser.role === 'ADMIN';
 
-  // --------------------------------------------------------------------------
-  // REUSABLE DETAILS RENDERER (Used in both Desktop Panel and Mobile Modal)
-  // --------------------------------------------------------------------------
   const renderRequestDetails = (request: EventRequest, isMobileView: boolean) => {
     const isMultiDate = request.dates && request.dates.length > 1;
 
     return (
       <>
-        {/* Header Section */}
         <div className={`p-5 md:p-6 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-start justify-between gap-4 bg-gray-50 dark:bg-gray-900 transition-colors ${isMobileView ? 'sticky top-0 z-10 shadow-sm' : ''}`}>
           <div className="flex-1 min-w-0">
             <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 leading-tight break-words">{request.eventTitle}</h2>
@@ -417,10 +395,8 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
           </div>
         </div>
 
-        {/* Content Body */}
-        <div className={`flex-1 overflow-y-auto p-4 md:p-6 bg-white dark:bg-gray-800 transition-colors ${isMobileView ? 'pb-24' : ''} [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 hover:[&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full`}>
+        <div className={`flex-1 overflow-y-auto p-4 md:p-6 bg-white dark:bg-gray-800 transition-colors ${isMobileView ? 'pb-24' : ''}`}>
           
-          {/* REASON BOX (Visible if Rejected or Canceled) */}
           {request.cancellationReason && (request.status === 'Rejected' || request.status === 'Canceled') && (
              <div className="mb-6 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-4">
                 <div className="flex items-start gap-3">
@@ -501,7 +477,6 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
                       <div className="text-lg md:text-xl font-bold">{formatTime(request.startTime)}</div>
                    </div>
                    
-                   {/* Divider: Horizontal on mobile, Vertical on desktop */}
                    <div className="hidden sm:block h-10 w-px bg-blue-200 dark:bg-blue-700 mx-2 float-left"></div>
                    
                    <div className="sm:mb-0 text-right sm:text-left">
@@ -513,7 +488,6 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
             </div>
           </div>
           
-          {/* EXCLUSIVE MULTI-DATE SCHEDULE VIEW */}
           {isMultiDate && (
              <div className="space-y-4 mb-8">
                 <h3 className="text-sm md:text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2 flex items-center gap-2">
@@ -536,7 +510,6 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
             <h3 className="text-sm md:text-base font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 pb-2">Requested Equipment</h3>
             {request.equipment.length > 0 ? (
               <>
-                {/* Desktop View: Table */}
                 <div className="hidden md:block overflow-hidden border border-gray-200 dark:border-gray-700 rounded-lg">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-900">
@@ -577,7 +550,6 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
                   </table>
                 </div>
 
-                {/* Mobile View: Cards List */}
                 <div className="md:hidden space-y-3">
                   {request.equipment.map((item) => {
                     const isAvailable = item.status === 'Available' || item.status === undefined;
@@ -609,7 +581,6 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
           </div>
         </div>
 
-        {/* Action Bar */}
         <div className={`p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between transition-colors ${isMobileView ? 'sticky bottom-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]' : ''}`}>
           
           {isAdmin ? (
@@ -644,7 +615,6 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
             </div>
           ) : (
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              {/* User only sees cancel if not already cancelled */}
               {request.status !== 'Canceled' && (
                 <button 
                   onClick={() => initiateStatusChange('Canceled')}
@@ -688,12 +658,12 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-8rem)]">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full lg:overflow-hidden">
       
-      {/* LEFT COLUMN: Request List */}
-      <div className="lg:col-span-1 flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden h-full transition-colors">
+      {/* LEFT COLUMN: Request List (Scrollable on desktop) */}
+      <div className="lg:col-span-1 flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden h-full transition-colors lg:max-h-full">
         {/* List Header */}
-        <div className="p-4 border-b border-gray-100 dark:border-gray-700 space-y-3 bg-gray-50 dark:bg-gray-900">
+        <div className="p-4 border-b border-gray-100 dark:border-gray-700 space-y-3 bg-gray-50 dark:bg-gray-900 flex-shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
             <input 
@@ -736,8 +706,8 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
           </div>
         </div>
 
-        {/* Scrollable List */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 hover:[&::-webkit-scrollbar-thumb]:bg-primary/50 [&::-webkit-scrollbar-thumb]:rounded-full">
+        {/* Scrollable List Body */}
+        <div className="flex-1 overflow-y-auto p-2 space-y-2 lg:h-auto min-h-0">
           {filteredEvents.length === 0 ? (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400">
               <FileText size={40} className="mx-auto mb-2 opacity-20" />
@@ -752,7 +722,6 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
                   key={event.id}
                   onClick={() => {
                     setSelectedRequest(event);
-                    // On mobile, open the modal
                     if (window.innerWidth < 1024) {
                        setIsMobileDetailOpen(true);
                     }
@@ -776,7 +745,6 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
                   </div>
                   <h3 className="text-gray-900 dark:text-gray-100 font-bold text-base truncate mb-2">{event.eventTitle}</h3>
                   
-                  {/* Date Display */}
                   <div className="flex items-center gap-2 mb-2">
                       {isMultiDate ? (
                         <span className="text-xs font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5 rounded flex items-center gap-1">
@@ -802,7 +770,7 @@ export const RequestPage: React.FC<RequestPageProps> = ({ events, onEventsUpdate
         </div>
       </div>
 
-      {/* RIGHT COLUMN: Request Details (Desktop Only - hidden on mobile) */}
+      {/* RIGHT COLUMN: Request Details (Desktop Only - hidden on mobile via logic in render) */}
       <div className="hidden lg:flex lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex-col h-full overflow-hidden transition-colors">
         {selectedRequest ? (
           renderRequestDetails(selectedRequest, false)

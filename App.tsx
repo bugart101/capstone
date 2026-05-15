@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar } from './components/Calendar';
 import { EventForm } from './components/EventForm';
@@ -88,8 +87,9 @@ const App: React.FC = () => {
 
   const handleDateClick = (date: Date) => {
     setSelectedDateForForm(date);
+    // On mobile, scroll to form
     const formElement = document.getElementById('event-form-section');
-    if (formElement && window.innerWidth < 768) {
+    if (formElement && window.innerWidth < 1024) {
       formElement.scrollIntoView({ behavior: 'smooth' });
     }
   };
@@ -104,14 +104,10 @@ const App: React.FC = () => {
   };
 
   const handleNotificationViewEvent = (eventId: string) => {
-    // Find event, switch view, open modal
     const event = events.find(e => e.id === eventId);
     if (event) {
-      // Decide which view is best. If it's the future, maybe Request view or Home view?
-      // Let's go to Home view and open details modal
       setCurrentView(ViewState.HOME);
       setSelectedEvent(event);
-      // If date is different, move calendar
       setCurrentDate(new Date(event.date));
     }
   };
@@ -121,7 +117,6 @@ const App: React.FC = () => {
     return facility ? facility.equipment : [];
   };
 
-  // Helper to format 24h time to 12h AM/PM
   const formatTime = (time: string) => {
     if (!time) return '';
     const [hours, minutes] = time.split(':');
@@ -141,9 +136,9 @@ const App: React.FC = () => {
     switch (currentView) {
       case ViewState.HOME:
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
-            {/* Left Column: Calendar */}
-            <div className="lg:col-span-2 min-h-[600px]">
+          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 h-full">
+            {/* Left Column: Calendar (Fixed height on mobile, Full height on desktop) */}
+            <div className="h-auto lg:h-full lg:col-span-2 min-h-0">
               <Calendar 
                 events={events}
                 currentDate={currentDate}
@@ -154,9 +149,9 @@ const App: React.FC = () => {
               />
             </div>
 
-            {/* Right Column: Form */}
-            <div id="event-form-section" className="lg:col-span-1">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 sticky top-24">
+            {/* Right Column: Form (Auto height on mobile, Scrollable on desktop) */}
+            <div id="event-form-section" className="lg:col-span-1 lg:h-full lg:overflow-y-auto pr-1 pb-1">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <EventForm 
                   onEventCreated={handleEventCreated} 
                   initialDate={selectedDateForForm}
@@ -166,21 +161,32 @@ const App: React.FC = () => {
           </div>
         );
       case ViewState.REQUEST:
-        return <RequestPage events={events} onEventsUpdate={() => loadData()} currentUser={currentUser} />;
+        return (
+           <div className="h-full">
+             <RequestPage events={events} onEventsUpdate={() => loadData()} currentUser={currentUser} />
+           </div>
+        );
       case ViewState.ACCOUNT:
-        return <AccountPage />;
+        return (
+          <div className="lg:overflow-y-auto lg:h-full pr-1">
+            <AccountPage />
+          </div>
+        );
       case ViewState.FACILITY:
-        // Protect facility route logic, though UI is hidden
-        return isAdmin ? <FacilityPage /> : <div className="p-4 text-red-500">Access Denied</div>;
+        return isAdmin ? (
+          <div className="lg:overflow-y-auto lg:h-full pr-1">
+            <FacilityPage />
+          </div>
+        ) : <div className="p-4 text-red-500">Access Denied</div>;
       default:
         return null;
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       {/* Header */}
-      <header className="bg-primary shadow-md z-20 sticky top-0">
+      <header className="bg-primary shadow-md z-20 sticky top-0 flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div 
             className="flex items-center gap-3 text-white cursor-pointer"
@@ -189,8 +195,8 @@ const App: React.FC = () => {
             <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
               <CalendarIcon size={24} />
             </div>
-            <h1 className="text-xl font-bold tracking-wide hidden md:block">Facility Management System</h1>
-            <h1 className="text-lg font-bold tracking-wide md:hidden">FMS</h1>
+            <h1 className="text-xl font-bold tracking-wide hidden lg:block">Facility Management System</h1>
+            <h1 className="text-lg font-bold tracking-wide lg:hidden">FMS</h1>
           </div>
           
           {/* Desktop Nav */}
@@ -236,8 +242,6 @@ const App: React.FC = () => {
                )}
              </ul>
              <div className="pl-6 border-l border-white/20 flex items-center gap-3">
-                
-                {/* Notification Center */}
                 <NotificationCenter 
                   notifications={notifications} 
                   onNotificationsUpdate={setNotifications}
@@ -245,7 +249,6 @@ const App: React.FC = () => {
                   currentUserId={currentUser.id}
                   currentUserRole={currentUser.role}
                 />
-
                 <span className="text-white/80 text-xs font-semibold flex items-center gap-1">
                   <UserIcon size={12} /> {currentUser.username}
                 </span>
@@ -259,7 +262,7 @@ const App: React.FC = () => {
              </div>
           </nav>
 
-          {/* Mobile Actions (Menu + Notification) */}
+          {/* Mobile Actions */}
           <div className="md:hidden flex items-center gap-2">
             <NotificationCenter 
               notifications={notifications} 
@@ -321,18 +324,18 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-colors duration-200">
+      <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:overflow-hidden lg:flex lg:flex-col transition-colors duration-200">
         {renderContent()}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-6 mt-auto transition-colors duration-200">
+      {/* Footer (Scrolls on mobile, fixed/hidden on desktop dashboard) */}
+      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-4 mt-auto flex-shrink-0 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 text-center text-gray-700 dark:text-gray-400 text-sm font-medium">
           <p>&copy; {new Date().getFullYear()} Facility Management System. All rights reserved.</p>
         </div>
       </footer>
 
-      {/* Day View Modal (Overflow) */}
+      {/* Day View Modal */}
       <Modal
          isOpen={!!dayViewData}
          onClose={() => setDayViewData(null)}
@@ -380,7 +383,7 @@ const App: React.FC = () => {
          </div>
       </Modal>
 
-      {/* Event Details Modal (Only for Calendar View Details) */}
+      {/* Event Details Modal */}
       <Modal
         isOpen={!!selectedEvent}
         onClose={() => setSelectedEvent(null)}
@@ -404,7 +407,6 @@ const App: React.FC = () => {
                </div>
             </div>
 
-            {/* CANCELLATION/REJECTION REASON DISPLAY */}
             {selectedEvent.cancellationReason && (selectedEvent.status === 'Rejected' || selectedEvent.status === 'Canceled') && (
               <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg p-4">
                 <div className="flex items-start gap-3">
@@ -455,7 +457,6 @@ const App: React.FC = () => {
                   <span className="block text-sm text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wide mb-1">Facility</span>
                   <span className="block text-gray-900 dark:text-gray-100 font-bold text-lg">{selectedEvent.facility}</span>
                   
-                  {/* Facility Equipment Display */}
                   {(() => {
                     const facilityEquipment = getFacilityEquipment(selectedEvent.facility);
                     if (facilityEquipment.length > 0) {

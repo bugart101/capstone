@@ -1,6 +1,6 @@
-
 import React, { useState, FormEvent, useEffect } from 'react';
-import { Plus, Trash2, Calendar as CalendarIcon, User, MapPin, CheckCircle2, Save, AlertCircle, X, Info, PackagePlus, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Calendar as CalendarIcon, User, MapPin, CheckCircle2, Save, AlertCircle, X, Info, PackagePlus, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
+import * as dateFns from 'date-fns';
 import { EventRequest, Equipment, Facility, User as AppUser } from '../types';
 import { eventService } from '../services/eventService';
 import { facilityService } from '../services/facilityService';
@@ -38,7 +38,7 @@ export const EventForm: React.FC<EventFormProps> = ({ onEventCreated, initialDat
   
   // Date Management
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [dateInput, setDateInput] = useState('');
+  const [pickerCurrentMonth, setPickerCurrentMonth] = useState(new Date());
 
   const [timeSlot, setTimeSlot] = useState('Morning');
   const [startTime, setStartTime] = useState('09:00');
@@ -105,14 +105,17 @@ export const EventForm: React.FC<EventFormProps> = ({ onEventCreated, initialDat
       
       if (initialData.dates && initialData.dates.length > 0) {
         setSelectedDates(initialData.dates);
+        // Set picker month to the first selected date
+        setPickerCurrentMonth(new Date(initialData.dates[0]));
       } else {
         setSelectedDates([initialData.date]);
+        setPickerCurrentMonth(new Date(initialData.date));
       }
     } else if (initialDate) {
       // Create Mode (from Calendar Click)
       const localDateStr = formatDateToLocalInput(initialDate);
-      setDateInput(localDateStr);
       setSelectedDates([localDateStr]);
+      setPickerCurrentMonth(initialDate);
     }
   }, [initialDate, initialData]);
 
@@ -146,13 +149,23 @@ export const EventForm: React.FC<EventFormProps> = ({ onEventCreated, initialDat
     }
   }, [startTime, endTime]);
 
-  const handleAddDate = () => {
-    if (!dateInput) return;
-    if (!selectedDates.includes(dateInput)) {
-      const newDates = [...selectedDates, dateInput].sort();
-      setSelectedDates(newDates);
-      resetConflictState();
+  // Calendar Navigation
+  const nextMonth = () => setPickerCurrentMonth(dateFns.addMonths(pickerCurrentMonth, 1));
+  const prevMonth = () => setPickerCurrentMonth(dateFns.subMonths(pickerCurrentMonth, 1));
+
+  const toggleDate = (date: Date) => {
+    const dateStr = formatDateToLocalInput(date);
+    let newDates;
+    
+    if (selectedDates.includes(dateStr)) {
+      newDates = selectedDates.filter(d => d !== dateStr);
+    } else {
+      newDates = [...selectedDates, dateStr].sort();
     }
+    
+    setSelectedDates(newDates);
+    if (errors.date) setErrors({...errors, date: ''});
+    resetConflictState();
   };
 
   const handleRemoveDate = (dateToRemove: string) => {
@@ -209,13 +222,12 @@ export const EventForm: React.FC<EventFormProps> = ({ onEventCreated, initialDat
     if (!endTime) newErrors.endTime = 'End time is required';
 
     if (startTime && endTime) {
-      const [startH, startM] = startTime.split(':').map(Number);
-      const [endH, endM] = endTime.split(':').map(Number);
-      const startTotal = startH * 60 + startM;
-      const endTotal = endH * 60 + endM;
+      const startTotal = getMinutes(startTime);
+      const endTotal = getMinutes(endTime);
 
       if (endTotal <= startTotal) {
         newErrors.endTime = 'End time must be after start time';
+        newErrors.startTime = 'Invalid range';
       }
     }
 
@@ -336,6 +348,14 @@ export const EventForm: React.FC<EventFormProps> = ({ onEventCreated, initialDat
 
   const selectedFacilityData = availableFacilities.find(f => f.name === facility);
 
+  // Mini Calendar Generation
+  const monthStart = dateFns.startOfMonth(pickerCurrentMonth);
+  const monthEnd = dateFns.endOfMonth(monthStart);
+  const startDate = dateFns.startOfWeek(monthStart);
+  const endDate = dateFns.endOfWeek(monthEnd);
+  const calendarDays = dateFns.eachDayOfInterval({ start: startDate, end: endDate });
+  const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-6 text-gray-900 dark:text-gray-100" noValidate>
@@ -373,12 +393,12 @@ export const EventForm: React.FC<EventFormProps> = ({ onEventCreated, initialDat
                   type="text"
                   required
                   value={requesterName}
-                  readOnly={!!currentUser && !initialData} 
+                  readOnly={!!currentUser && currentUser.role !== 'ADMIN' && !initialData} 
                   onChange={(e) => {
                     setRequesterName(e.target.value);
                     if (errors.requesterName) setErrors({...errors, requesterName: ''});
                   }}
-                  className={`w-full pl-9 pr-3 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${!!currentUser && !initialData ? 'bg-gray-50 dark:bg-gray-600 text-gray-600 dark:text-gray-300' : ''} ${errors.requesterName ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                  className={`w-full pl-9 pr-3 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${!!currentUser && currentUser.role !== 'ADMIN' && !initialData ? 'bg-gray-50 dark:bg-gray-600 text-gray-600 dark:text-gray-300' : ''} ${errors.requesterName ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                   placeholder="Your Full Name"
                 />
               </div>
@@ -411,55 +431,80 @@ export const EventForm: React.FC<EventFormProps> = ({ onEventCreated, initialDat
             </div>
             
             <div>
-              <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
+              <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
                 Date(s) of Use
               </label>
               
-              <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <CalendarIcon className="absolute left-3 top-2.5 text-gray-500 dark:text-gray-400" size={16} />
-                      <input
-                        type="date"
-                        value={dateInput}
-                        onChange={(e) => {
-                          setDateInput(e.target.value);
-                          if (errors.date) setErrors({...errors, date: ''});
-                          resetConflictState();
-                        }}
-                        className={`w-full pl-9 pr-3 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${errors.date ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300 dark:border-gray-600'}`}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleAddDate}
-                      className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 font-bold text-sm transition-colors"
-                    >
-                      Add
-                    </button>
+              {/* MINI CALENDAR DATE PICKER */}
+              <div className={`border rounded-lg p-3 bg-white dark:bg-gray-800 transition-colors ${errors.date ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300 dark:border-gray-600'}`}>
+                
+                {/* Calendar Header */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{dateFns.format(pickerCurrentMonth, 'MMMM yyyy')}</span>
+                  <div className="flex gap-1">
+                    <button type="button" onClick={prevMonth} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300"><ChevronLeft size={16} /></button>
+                    <button type="button" onClick={nextMonth} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300"><ChevronRight size={16} /></button>
                   </div>
-                  
-                  {/* Selected Dates List */}
-                  {selectedDates.length > 0 ? (
-                    <div className="flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-gray-900/50 rounded-md border border-gray-100 dark:border-gray-700">
-                      {selectedDates.map(date => (
-                        <span key={date} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20 animate-fade-in">
-                          {date}
-                          <button 
-                            type="button" 
-                            onClick={() => handleRemoveDate(date)}
-                            className="hover:text-red-600 transition-colors"
-                          >
-                            <X size={12} />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 italic pl-1">No dates selected.</p>
-                  )}
+                </div>
+
+                {/* Calendar Grid */}
+                <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                  {weekDays.map(d => <span key={d} className="text-[10px] text-gray-400 dark:text-gray-500 font-medium uppercase">{d}</span>)}
+                </div>
+                <div className="grid grid-cols-7 gap-1">
+                  {calendarDays.map(day => {
+                    const dateStr = formatDateToLocalInput(day);
+                    const isSelected = selectedDates.includes(dateStr);
+                    const isCurrentMonth = dateFns.isSameMonth(day, pickerCurrentMonth);
+                    const isTodayDate = dateFns.isToday(day);
+
+                    return (
+                      <button
+                        key={day.toISOString()}
+                        type="button"
+                        onClick={() => toggleDate(day)}
+                        className={`
+                          h-8 w-full rounded text-xs font-medium flex items-center justify-center transition-all
+                          ${isSelected 
+                            ? 'bg-primary text-white shadow-sm' 
+                            : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}
+                          ${!isCurrentMonth ? 'opacity-30' : ''}
+                          ${isTodayDate && !isSelected ? 'border border-primary text-primary font-bold' : ''}
+                        `}
+                      >
+                        {dateFns.format(day, 'd')}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Legend/Info */}
+                <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 text-[10px] text-gray-500 dark:text-gray-400 flex justify-between items-center">
+                  <span>Click dates to select/deselect multiple.</span>
+                  {selectedDates.length > 0 && <span className="font-bold text-primary">{selectedDates.length} selected</span>}
+                </div>
               </div>
-              
+
+              {/* Selected Dates Chips */}
+              {selectedDates.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {selectedDates.map(date => (
+                    <span key={date} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20 animate-fade-in">
+                      {date}
+                      <button 
+                        type="button" 
+                        onClick={() => handleRemoveDate(date)}
+                        className="hover:text-red-600 transition-colors"
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500 dark:text-gray-400 italic mt-2">No dates selected.</p>
+              )}
+
               {errors.date && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle size={10} /> {errors.date}</p>}
             </div>
           </div>
@@ -479,7 +524,7 @@ export const EventForm: React.FC<EventFormProps> = ({ onEventCreated, initialDat
                   }}
                   className={`w-full px-2 py-2 border rounded-md focus:ring-2 focus:ring-primary outline-none text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${errors.startTime ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300 dark:border-gray-600'}`}
               />
-              {errors.startTime && <p className="text-red-500 text-xs mt-1">{errors.startTime}</p>}
+              {errors.startTime && <p className="text-red-500 text-[10px] sm:text-xs mt-1 flex items-center gap-1"><AlertCircle size={10} /> {errors.startTime}</p>}
             </div>
             <div className="col-span-1">
               <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">End</label>
@@ -490,11 +535,12 @@ export const EventForm: React.FC<EventFormProps> = ({ onEventCreated, initialDat
                   onChange={(e) => {
                     setEndTime(e.target.value);
                     if (errors.endTime) setErrors({...errors, endTime: ''});
+                    if (errors.startTime) setErrors({...errors, startTime: ''});
                     resetConflictState();
                   }}
                   className={`w-full px-2 py-2 border rounded-md focus:ring-2 focus:ring-primary outline-none text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${errors.endTime ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300 dark:border-gray-600'}`}
               />
-              {errors.endTime && <p className="text-red-500 text-xs mt-1">{errors.endTime}</p>}
+              {errors.endTime && <p className="text-red-500 text-[10px] sm:text-xs mt-1 flex items-center gap-1"><AlertCircle size={10} /> {errors.endTime}</p>}
             </div>
             <div className="col-span-1">
               <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">Slot</label>
